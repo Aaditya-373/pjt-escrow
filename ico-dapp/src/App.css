@@ -1,8 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #f0f2f5;
-  color: #333;
+  font-family: 'Poppins', sans-serif;
+  background-color: #121212;
+
+  /* Dark background */
+  color: #e0e0e0;
+  /* Light text color */
 }
 
 .app {
@@ -10,13 +15,14 @@ body {
 }
 
 .header {
-  background-color: #1f2937;
+  background-color: #1f1f1f;
   /* Dark header */
-  color: white;
-  padding: 20px;
+  color: #ffffff;
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
@@ -24,92 +30,139 @@ h1 {
 }
 
 .connect-wallet {
-  background-color: #3b82f6;
-  /* Bright blue for CTA */
+  background-color: #bb86fc;
+  /* Purple for CTA */
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 8px 15px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
+  transition: background-color 0.3s;
 }
 
 .connect-wallet:hover {
-  background-color: #2563eb;
-  /* Darker blue on hover */
+  background-color: #9c27b0;
+  /* Darker purple on hover */
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 20px auto;
   padding: 20px;
 }
 
 .investment-form {
-  background-color: white;
-  padding: 20px;
+  background-color: #1e1e1e;
+  /* Darker form background */
+  padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   margin-bottom: 30px;
 }
 
 .investment-form input {
-  width: 100%;
-  padding: 15px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
+  width: 50%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #333;
+  /* Dark border */
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 14px;
+  background-color: #2a2a2a;
+  /* Darker input background */
+  color: #ffffff;
+  /* White text for inputs */
 }
 
 .deposit-button {
-  width: 100%;
-  background-color: #10b981;
-  /* Success green for submit */
+  width: 50%;
+  background-color: #bb86fc;
+  /* Teal for submit */
   color: white;
-  padding: 15px;
+  padding: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 18px;
-  margin-top: 20px;
+  font-size: 16px;
+  margin-top: 15px;
+  transition: background-color 0.3s;
 }
 
 .deposit-button:hover {
-  background-color: #059669;
-  /* Darker green on hover */
+  background-color: purple;
+  /* Darker teal on hover */
 }
 
 .investments-summary {
-  background-color: white;
-  padding: 20px;
+  background-color: #1e1e1e;
+  /* Darker summary background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .investments-summary h2 {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .investment-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
 }
 
 .investment-card {
-  background-color: #f9fafb;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #1e1e1e;
+  /* Dark background for card */
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   text-align: left;
+  word-wrap: break-word;
+  /* Ensure text doesn't overflow */
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 20px;
+  /* Add space between cards */
+}
+
+.investment-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .investment-card h4 {
-  margin: 0 0 10px;
-  font-size: 18px;
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #bb86fc;
+  /* Bright color for the company name */
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .investment-card p {
-  margin: 5px 0;
+  margin: 6px 0;
+  font-size: 15px;
+  color: #e0e0e0;
+  /* Slightly lighter text for details */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.investment-card p:first-child {
+  font-weight: 500;
+  color: #f9fafb;
+  /* Bright color for wallet address */
+}
+
+.investment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  /* Add space between grid items */
 }

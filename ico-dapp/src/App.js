@@ -24,6 +24,13 @@ const App = () => {
       const accounts = await ethereum.request({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
     };
+
+    // Load investments from localStorage
+    const savedInvestments = localStorage.getItem("investments");
+    if (savedInvestments) {
+      setInvestments(JSON.parse(savedInvestments));
+    }
+
     loadProvider();
   }, []);
 
@@ -53,13 +60,49 @@ const App = () => {
       alert('OTP sent successfully! Please check your phone.');
       let x=prompt("Please Enter your OTP :")
       setOtp(x)
+      console.log("Escrow address: ", escrowAddress);
+      console.log("Token address: ", tokenAddress);
+      console.log("Amount to deposit: ", amount);
+
+      // Interact with EscrowWallet: deposit ETH
+      const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
+      const depositTx = await escrowContract.deposit({ value: ethers.utils.parseEther(amount) });
+      await depositTx.wait();
+      console.log("Deposit transaction successful:", depositTx);
+
+      // Interact with Token contract: mint tokens based on ETH amount
+      const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
+
+      const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
+      console.log("Minting tokens: ", tokenAmount);
+
+      const mintTx = await tokenContract.mint(account, ethers.utils.parseUnits(tokenAmount, 18));
+      await mintTx.wait();
+      console.log("Mint transaction successful:", mintTx);
+
+      // Record the investment with relevant details
+      const newInvestment = {
+        company: `Company ${investments.length + 1}`, // Dynamically generate company name
+        escrowAddress: escrowAddress,
+        amountDeposited: amount,
+        tokensReceived: tokenAmount,
+        tokenPrice: tokenPrice,
+      };
+
+      // Update state and localStorage
+      const updatedInvestments = [...investments, newInvestment];
+      setInvestments(updatedInvestments);
+      localStorage.setItem("investments", JSON.stringify(updatedInvestments)); // Save to localStorage
+
+      // Reset the form
+      setAmount("");
+      alert("Deposit and minting successful!");
     } catch (error) {
       console.error("Error sending OTP:", error);
       alert(error.message);
       setLoading(false);
       return;
     }
-
     // Step 2: Verify OTP and then proceed with the deposit
     if (otpSent) {
       try {
