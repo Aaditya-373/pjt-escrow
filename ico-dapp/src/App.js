@@ -42,6 +42,7 @@ const App = () => {
 
     setLoading(true);
 
+
     // Step 1: Send OTP
     try {
       const otpResponse = await fetch('http://localhost:5000/send-otp', {
@@ -96,9 +97,39 @@ const App = () => {
         await depositTx.wait();
         console.log("Deposit transaction successful:", depositTx);
 
+        const transactionDetails = `
+         Transaction Hash: ${depositTx.hash}
+         Senders: ${depositTx.from}
+         Receivers: ${depositTx.to}
+         Amount: ${amount} ETH
+         Gas Used: ${depositTx.gasPrice.toString()}
+         ChainID: ${depositTx.chainId}
+         Block Number: ${depositTx.blockNumber}
+         Nonce: ${depositTx.nonce}
+       `;
+
+       // Send transaction details as an SMS
+       try {
+         const smsResponse = await fetch('http://localhost:5000/send-transaction-message', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+         });
+
+         if (!smsResponse.ok) {
+           throw new Error('Failed to send transaction details SMS');
+         }
+         console.log("Transaction details sent via SMS successfully!");
+
+       } catch (error) {
+         console.error("Error sending transaction details SMS:", error);
+       }
+
+
         // Interact with Token contract: mint tokens based on ETH amount
         const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
-        
         const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
         console.log("Minting tokens: ", tokenAmount);
 
@@ -107,6 +138,39 @@ const App = () => {
         console.log("Mint transaction successful:", mintTx);
 
         // Record the investment with relevant details
+        const MintDetails = `
+        Transaction Hash: ${mintTx.hash}
+        Senders: ${mintTx.from}
+        Receivers: ${mintTx.to}
+        TokenPrice: ${tokenPrice} ETH
+        Tokens: ${tokenAmount} ETH
+        Amount: ${amount} ETH
+        Gas Used: ${mintTx.gasPrice.toString()}
+        ChainID: ${mintTx.chainId}
+        Block Number: ${mintTx.blockNumber}
+        Nonce: ${mintTx.nonce}
+      `;
+
+       // Send transaction details as an SMS
+       try {
+         const smsResponse = await fetch('http://localhost:5000/send-transaction-message', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({ phoneNumber, message: MintDetails }),
+         });
+
+         if (!smsResponse.ok) {
+           throw new Error('Failed to send transaction details SMS');
+         }
+         console.log("Transaction details sent via SMS successfully!");
+
+       } catch (error) {
+         console.error("Error sending transaction details SMS:", error);
+       }
+
+
         setInvestments([
           ...investments,
           {
@@ -118,6 +182,8 @@ const App = () => {
           },
         ]);
 
+         // Prepare transaction details for SMS
+         
         // Reset the form
         setAmount("");
         setOtp("");

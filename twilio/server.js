@@ -12,7 +12,6 @@ const corsOptions = {
     allowedHeaders: ['Content-Type'],
     credentials: true,
 };
-
 app.use(cors(corsOptions));
 const port = 5000;
 
@@ -67,6 +66,26 @@ app.post('/verify-otp', async (req, res) => {
         return res.status(500).send({ message: 'Failed to verify OTP', error });
     }
 });
+
+// Endpoint to send a transaction message
+app.post('/send-transaction-message', async (req, res) => {
+    const {phoneNumber } = req.body;  // You can hardcode the number if necessary
+    console.log(req.body)
+    try {
+        const message = await client.messages.create({
+            body: req.body.message,  // Message content
+            messagingServiceSid: "MGced665e12315f7a8b81042145feff8b9", // Add your Messaging Service SID
+            to: phoneNumber || '+917358645059',  // Recipient number
+        });
+
+        console.log("Transaction message sent:", message.sid);
+        return res.status(200).send({ message: 'Transaction message sent successfully!', messageSid: message.sid });
+    } catch (error) {
+        console.error("Error sending transaction message:", error);
+        return res.status(500).send({ message: 'Failed to send transaction message', error });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
