@@ -1,0 +1,47 @@
+/* src/Balance.css */
+
+.balance-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.balance-card {
+    background-color: #1e1e1e;
+    /* Dark background for the card */
+    color: #ffffff;
+    /* White text */
+    border-radius: 10px;
+    /* Rounded corners */
+    padding: 20px;
+    /* Padding for spacing */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    /* Shadow for depth */
+    width: 500px;
+    /* Fixed width for the card */
+    text-align: center;
+    /* Center text alignment */
+}
+
+.balance-card h2 {
+    margin: 0 0 15px;
+    /* Spacing below the title */
+    font-size: 20px;
+    /* Title font size */
+}
+
+.account,
+.balance {
+    margin: 5px 0;
+    /* Margins for spacing */
+    font-size: 16px;
+    /* Font size for account and balance */
+}
+
+.account span,
+.balance span {
+    font-weight: bold;
+    /* Bold font for emphasis */
+    color: #03dac6;
+    /* Teal color for emphasis */
+}

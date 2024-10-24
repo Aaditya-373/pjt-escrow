@@ -21,6 +21,13 @@ const App = () => {
       const accounts = await ethereum.request({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
     };
+
+    // Load investments from localStorage
+    const savedInvestments = localStorage.getItem("investments");
+    if (savedInvestments) {
+      setInvestments(JSON.parse(savedInvestments));
+    }
+
     loadProvider();
   }, []);
 
@@ -47,7 +54,7 @@ const App = () => {
 
       // Interact with Token contract: mint tokens based on ETH amount
       const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
-      
+
       const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
       console.log("Minting tokens: ", tokenAmount);
 
@@ -56,16 +63,18 @@ const App = () => {
       console.log("Mint transaction successful:", mintTx);
 
       // Record the investment with relevant details
-      setInvestments([
-        ...investments,
-        {
-          company: `Company ${investments.length + 1}`, // Dynamically generate company name
-          escrowAddress: escrowAddress,
-          amountDeposited: amount,
-          tokensReceived: tokenAmount,
-          tokenPrice: tokenPrice,
-        },
-      ]);
+      const newInvestment = {
+        company: `Company ${investments.length + 1}`, // Dynamically generate company name
+        escrowAddress: escrowAddress,
+        amountDeposited: amount,
+        tokensReceived: tokenAmount,
+        tokenPrice: tokenPrice,
+      };
+
+      // Update state and localStorage
+      const updatedInvestments = [...investments, newInvestment];
+      setInvestments(updatedInvestments);
+      localStorage.setItem("investments", JSON.stringify(updatedInvestments)); // Save to localStorage
 
       // Reset the form
       setAmount("");
@@ -79,16 +88,16 @@ const App = () => {
     }
   };
 
-
   return (
     <div className="app">
       <header className="header">
         <h1>ICO Dashboard</h1>
         <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
       </header>
-    <div>
-      <Balance/>
-    </div>
+      <div>
+        <Balance />
+
+      </div>
       <div className="container">
         <div className="investment-form">
           <h2>Invest in a Company</h2>

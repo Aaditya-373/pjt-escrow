@@ -1,7 +1,8 @@
-// src/App.js
+// src/Balance.js
 
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+import './Balance.css'; // Import the new CSS styles
 
 function Balance() {
   const [account, setAccount] = useState(null);
@@ -49,16 +50,18 @@ function Balance() {
   }, [account]);
 
   return (
-    <div>
-      <h1>MetaMask Balance Checker</h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div>
-          <p>Account: {account}</p>
-          <p>Balance: {balance} ETH</p>
-        </div>
-      )}
+    <div className="balance-container">
+      <div className="balance-card">
+        <h2>MetaMask Balance Checker</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <>
+            <p className="account">Account: <span>{account}</span></p>
+            <p className="balance">Balance: <span>{balance} ETH</span></p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
