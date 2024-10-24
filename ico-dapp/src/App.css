@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Poppins', sans-serif;
   background-color: #121212;
 
   /* Dark background */
@@ -28,7 +30,7 @@ h1 {
 }
 
 .connect-wallet {
-  background-color: rgb(9, 205, 9);
+  background-color: #bb86fc;
   /* Purple for CTA */
   color: white;
   border: none;
@@ -95,6 +97,9 @@ h1 {
 .investments-summary {
   background-color: #1e1e1e;
   /* Darker summary background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
