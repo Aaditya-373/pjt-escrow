@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import EscrowWallet from "./abis/EscrowWallet.json";
 import Token from "./abis/Token.json";
 import './App.css'; // Import your CSS file for styling
+import Balance from "./Balance";
 
 const App = () => {
   const [account, setAccount] = useState("");
@@ -46,6 +47,7 @@ const App = () => {
 
       // Interact with Token contract: mint tokens based on ETH amount
       const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
+      
       const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
       console.log("Minting tokens: ", tokenAmount);
 
@@ -84,7 +86,9 @@ const App = () => {
         <h1>ICO Dashboard</h1>
         <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
       </header>
-
+    <div>
+      <Balance/>
+    </div>
       <div className="container">
         <div className="investment-form">
           <h2>Invest in a Company</h2>
