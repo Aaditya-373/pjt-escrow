@@ -13,6 +13,9 @@ const App = () => {
   const [tokenAddress, setTokenAddress] = useState("");
   const [tokenPrice, setTokenPrice] = useState(100); // Default token price, 1 ETH = 100 tokens
   const [loading, setLoading] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     const loadProvider = async () => {
@@ -32,16 +35,31 @@ const App = () => {
   }, []);
 
   const handleDeposit = async () => {
-    if (!escrowAddress || !tokenAddress || !amount) {
+    if (!escrowAddress || !tokenAddress || !amount || !phoneNumber) {
       alert("Please enter all required fields.");
       return;
     }
 
     setLoading(true);
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
 
+    // Step 1: Send OTP
     try {
+      const otpResponse = await fetch('http://localhost:5000/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phoneNumber }),
+      });
+      console.log(otpResponse)
+      if (!otpResponse.ok) {
+        throw new Error('Failed to send OTP');
+      }
+      
+      setOtpSent(true);
+      alert('OTP sent successfully! Please check your phone.');
+      let x=prompt("Please Enter your OTP :")
+      setOtp(x)
       console.log("Escrow address: ", escrowAddress);
       console.log("Token address: ", tokenAddress);
       console.log("Amount to deposit: ", amount);
@@ -79,12 +97,74 @@ const App = () => {
       // Reset the form
       setAmount("");
       alert("Deposit and minting successful!");
-
     } catch (error) {
-      console.error("Error during deposit or token minting:", error);
-      alert(`An error occurred during deposit or token minting: ${error.message}`);
-    } finally {
+      console.error("Error sending OTP:", error);
+      alert(error.message);
       setLoading(false);
+      return;
+    }
+    // Step 2: Verify OTP and then proceed with the deposit
+    if (otpSent) {
+      try {
+        const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({phoneNumber:phoneNumber,otp: otp }),
+        });
+
+        if (!verifyResponse.ok) {
+          throw new Error('Invalid OTP. Please try again.');
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        console.log("Escrow address: ", escrowAddress);
+        console.log("Token address: ", tokenAddress);
+        console.log("Amount to deposit: ", amount);
+
+        // Interact with EscrowWallet: deposit ETH
+        const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
+        const depositTx = await escrowContract.deposit({ value: ethers.utils.parseEther(amount) });
+        await depositTx.wait();
+        console.log("Deposit transaction successful:", depositTx);
+
+        // Interact with Token contract: mint tokens based on ETH amount
+        const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
+        
+        const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
+        console.log("Minting tokens: ", tokenAmount);
+
+        const mintTx = await tokenContract.mint(account, ethers.utils.parseUnits(tokenAmount, 18));
+        await mintTx.wait();
+        console.log("Mint transaction successful:", mintTx);
+
+        // Record the investment with relevant details
+        setInvestments([
+          ...investments,
+          {
+            company: `Company ${investments.length + 1}`, // Dynamically generate company name
+            escrowAddress: escrowAddress,
+            amountDeposited: amount,
+            tokensReceived: tokenAmount,
+            tokenPrice: tokenPrice,
+          },
+        ]);
+
+        // Reset the form
+        setAmount("");
+        setOtp("");
+        setOtpSent(false);
+        alert("Deposit and minting successful!");
+
+      } catch (error) {
+        console.error("Error during deposit or token minting:", error);
+        alert(`An error occurred during deposit or token minting: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -95,8 +175,7 @@ const App = () => {
         <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
       </header>
       <div>
-        <Balance />
-
+        <Balance/>
       </div>
       <div className="container">
         <div className="investment-form">
@@ -119,8 +198,14 @@ const App = () => {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-          <button className="deposit-button" onClick={handleDeposit} disabled={loading}>
-            {loading ? "Processing..." : "Deposit ETH & Mint Tokens"}
+          <input
+            type="text"
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+          />
+          <button className="deposit-button" onClick={handleDeposit} >
+            "Deposit ETH & Mint Tokens"
           </button>
         </div>
 
