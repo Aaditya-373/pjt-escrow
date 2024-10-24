@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f2f5;
+  color: #333;
+}
+
+.app {
+  text-align: center;
+}
+
+.header {
+  background-color: #1f2937;
+  /* Dark header */
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+}
+
+.connect-wallet {
+  background-color: #3b82f6;
+  /* Bright blue for CTA */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.connect-wallet:hover {
+  background-color: #2563eb;
+  /* Darker blue on hover */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.investment-form {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.investment-form input {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.deposit-button {
+  width: 100%;
+  background-color: #10b981;
+  /* Success green for submit */
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 20px;
+}
+
+.deposit-button:hover {
+  background-color: #059669;
+  /* Darker green on hover */
+}
+
+.investments-summary {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.investments-summary h2 {
+  margin-bottom: 20px;
+}
+
+.investment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.investment-card {
+  background-color: #f9fafb;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.investment-card h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.investment-card p {
+  margin: 5px 0;
+}

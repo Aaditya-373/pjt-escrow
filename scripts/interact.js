@@ -3,8 +3,8 @@ const ethers = hre.ethers;
 
 async function main() {
     // Escrow and Token contract addresses
-    const escrowContractAddress = "0x622B91c67e0e42A192004acd1C19dC4232A391d0"; // Replace with your deployed escrow contract address
-    const tokenContractAddress = "0xfB0f41efA3cDDee8a45B9C41AAa0E937E5e5ab20"; // Replace with your deployed token contract address
+    const escrowContractAddress = "0xC417bD949789cEc272e4FcCD3fBa6a423A24B246"; // Replace with your deployed escrow contract address
+    const tokenContractAddress = "0x4e08be40F526E3E1B450eE944105530bD874f9D3"; // Replace with your deployed token contract address
 
     // Fetch the contract ABIs and attach to the addresses
     const EscrowWallet = await hre.ethers.getContractAt("EscrowWallet", escrowContractAddress);
