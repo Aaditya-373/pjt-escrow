@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./EscrowWallet.sol";
+import "./Escrow.sol";
 
 contract TokenPriceManager {
     IERC20 public token;             // The token contract
