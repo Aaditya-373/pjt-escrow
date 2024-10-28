@@ -17,7 +17,7 @@ const port = 5000;
 
 // Twilio credentials from environment variables
 const accountSid = process.env.TWILIO_ACCOUNT_SID || 'AC6617c8f318e05ec6ebfc30cf901c0c70';
-const authToken = process.env.TWILIO_AUTH_TOKEN || '6c6e6adbf220c4deb436f654bb7ac032';
+const authToken = process.env.TWILIO_AUTH_TOKEN || 'e8ee9c5f75d59211995b4bef3226ce22';
 const client = twilio(accountSid, authToken);
 
 // Middleware

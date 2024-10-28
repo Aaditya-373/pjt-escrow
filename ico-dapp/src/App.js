@@ -1,9 +1,16 @@
+// export default App;
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import EscrowWallet from "./abis/EscrowWallet.json";
-import Token from "./abis/Token.json";
-import './App.css'; // Import your CSS file for styling
+import DemandBasedToken from "./abis/DemandBasedToken.json"; 
+import TokenPriceManager from "./abis/TokenPriceManager.json";
+import './App.css';
 import Balance from "./Balance";
+
+// EscrowWallet deployed to: 0x59f6452fb1E2348E2FB3f47CDdfC211832e20C8D
+// Token contract deployed to: 0xDf3a1fC41d9a80c8932B06332a6483Be407A6328
+// DemandBasedToken deployed to: 0x790a63D09b36fDf133139542212D0B734C9FDef3
+// TokenPriceManager deployed to: 0x6f4387411174B2f21f1808BC0887520EE56D37B5
 
 const App = () => {
   const [account, setAccount] = useState("");
@@ -11,7 +18,8 @@ const App = () => {
   const [investments, setInvestments] = useState([]);
   const [escrowAddress, setEscrowAddress] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
-  const [tokenPrice, setTokenPrice] = useState(100); // Default token price, 1 ETH = 100 tokens
+  const [priceManagerAddress, setPriceManagerAddress] = useState("");
+  const [tokenPrice, setTokenPrice] = useState(100); 
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -25,177 +33,123 @@ const App = () => {
       setAccount(accounts[0]);
     };
 
-    // Load investments from localStorage
     const savedInvestments = localStorage.getItem("investments");
     if (savedInvestments) {
       setInvestments(JSON.parse(savedInvestments));
     }
 
     loadProvider();
-  }, []);
+  }, [tokenPrice]);
 
   const handleDeposit = async () => {
-    if (!escrowAddress || !tokenAddress || !amount || !phoneNumber) {
+    if (!escrowAddress || !tokenAddress || !priceManagerAddress || !amount || !phoneNumber) {
       alert("Please enter all required fields.");
       return;
     }
 
     setLoading(true);
 
-
-    // Step 1: Send OTP
     try {
       const otpResponse = await fetch('http://localhost:5000/send-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber }),
       });
-      console.log(otpResponse)
-      if (!otpResponse.ok) {
-        throw new Error('Failed to send OTP');
-      }
-      
+
+      if (!otpResponse.ok) throw new Error('Failed to send OTP');
+
       setOtpSent(true);
       alert('OTP sent successfully! Please check your phone.');
-      let x=prompt("Please Enter your OTP :")
-      setOtp(x)
-  
-    } catch (error) {
-      console.error("Error sending OTP:", error);
-      alert(error.message);
-      setLoading(false);
-      return;
-    }
-  
-    // Step 2: Verify OTP and then proceed with the deposit
-    if (otpSent) {
-      try {
+      const enteredOtp = prompt("Please Enter your OTP :");
+      setOtp(enteredOtp);
+
+      if (otpSent) {
         const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({phoneNumber:phoneNumber,otp: otp }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber, otp }),
         });
 
-        if (!verifyResponse.ok) {
-          throw new Error('Invalid OTP. Please try again.');
-        }
+        if (!verifyResponse.ok) throw new Error('Invalid OTP. Please try again.');
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        console.log("Escrow address: ", escrowAddress);
-        console.log("Token address: ", tokenAddress);
-        console.log("Amount to deposit: ", amount);
-
-        // Interact with EscrowWallet: deposit ETH
         const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
         const depositTx = await escrowContract.deposit({ value: ethers.utils.parseEther(amount) });
         await depositTx.wait();
         console.log("Deposit transaction successful:", depositTx);
 
         const transactionDetails = `
-         Transaction Hash: ${depositTx.hash}
-         Senders: ${depositTx.from}
-         Receivers: ${depositTx.to}
-         Amount: ${amount} ETH
-         Gas Used: ${depositTx.gasPrice.toString()}
-         ChainID: ${depositTx.chainId}
-         Block Number: ${depositTx.blockNumber}
-         Nonce: ${depositTx.nonce}
-       `;
+          Transaction Hash: ${depositTx.hash}
+          Senders: ${depositTx.from}
+          Receivers: ${depositTx.to}
+          Amount: ${amount} ETH
+          Gas Used: ${depositTx.gasPrice.toString()}
+          ChainID: ${depositTx.chainId}
+          Block Number: ${depositTx.blockNumber}
+          Nonce: ${depositTx.nonce}
+        `;
 
-       // Send transaction details as an SMS
-       try {
-         const smsResponse = await fetch('http://localhost:5000/send-transaction-message', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({ phoneNumber, message: transactionDetails }),
-         });
+        await fetch('http://localhost:5000/send-transaction-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+        });
 
-         if (!smsResponse.ok) {
-           throw new Error('Failed to send transaction details SMS');
-         }
-         console.log("Transaction details sent via SMS successfully!");
+        const priceManagerContract = new ethers.Contract(priceManagerAddress, TokenPriceManager.abi, signer);
+        await priceManagerContract.updatePriceOnDeposit(ethers.utils.parseEther(amount));
 
-       } catch (error) {
-         console.error("Error sending transaction details SMS:", error);
-       }
+        const updatedPrice = await priceManagerContract.getTokenPrice();
+        setTokenPrice(updatedPrice);
+        console.log(updatedPrice);
 
-
-        // Interact with Token contract: mint tokens based on ETH amount
-        const tokenContract = new ethers.Contract(tokenAddress, Token.abi, signer);
-        const tokenAmount = (amount * tokenPrice).toFixed(0); // Token calculation based on current price
-        console.log("Minting tokens: ", tokenAmount);
-
-        const mintTx = await tokenContract.mint(account, ethers.utils.parseUnits(tokenAmount, 18));
+        const tokenContract = new ethers.Contract(tokenAddress, DemandBasedToken.abi, signer);
+        const mintTx = await tokenContract.mintTokens({ value: ethers.utils.parseEther(amount) });
         await mintTx.wait();
         console.log("Mint transaction successful:", mintTx);
 
-        // Record the investment with relevant details
-        const MintDetails = `
-        Transaction Hash: ${mintTx.hash}
-        Senders: ${mintTx.from}
-        Receivers: ${mintTx.to}
-        TokenPrice: ${tokenPrice} ETH
-        Tokens: ${tokenAmount} ETH
-        Amount: ${amount} ETH
-        Gas Used: ${mintTx.gasPrice.toString()}
-        ChainID: ${mintTx.chainId}
-        Block Number: ${mintTx.blockNumber}
-        Nonce: ${mintTx.nonce}
-      `;
+        const mintDetails = `
+          Transaction Hash: ${mintTx.hash}
+          Senders: ${mintTx.from}
+          Receivers: ${mintTx.to}
+          TokenPrice: ${updatedPrice} ETH
+          Tokens: ${(amount * updatedPrice).toFixed(0)}
+          Amount: ${amount} ETH
+          Gas Used: ${mintTx.gasPrice.toString()}
+          ChainID: ${mintTx.chainId}
+          Block Number: ${mintTx.blockNumber}
+          Nonce: ${mintTx.nonce}
+        `;
 
-       // Send transaction details as an SMS
-       try {
-         const smsResponse = await fetch('http://localhost:5000/send-transaction-message', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({ phoneNumber, message: MintDetails }),
-         });
-
-         if (!smsResponse.ok) {
-           throw new Error('Failed to send transaction details SMS');
-         }
-         console.log("Transaction details sent via SMS successfully!");
-
-       } catch (error) {
-         console.error("Error sending transaction details SMS:", error);
-       }
-
+        await fetch('http://localhost:5000/send-transaction-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber, message: mintDetails }),
+        });
 
         setInvestments([
           ...investments,
           {
-            company: `Company ${investments.length + 1}`, // Dynamically generate company name
+            company: `Company ${investments.length + 1}`,
             escrowAddress: escrowAddress,
             amountDeposited: amount,
-            tokensReceived: tokenAmount,
-            tokenPrice: tokenPrice,
+            tokensReceived: (amount * updatedPrice).toFixed(0),
+            tokenPrice: updatedPrice,
           },
         ]);
 
-         // Prepare transaction details for SMS
-         
-        // Reset the form
         setAmount("");
         setOtp("");
         setOtpSent(false);
         alert("Deposit and minting successful!");
 
-      } catch (error) {
-        console.error("Error during deposit or token minting:", error);
-        alert(`An error occurred during deposit or token minting: ${error.message}`);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Error during deposit or token minting:", error);
+      alert(`An error occurred during deposit or token minting: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -206,58 +160,36 @@ const App = () => {
         <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
       </header>
       <div>
-        <Balance/>
+        <Balance />
       </div>
       <div className="container">
         <div className="investment-form">
           <h2>Invest in a Company</h2>
-          <input
-            type="text"
-            placeholder="Escrow Wallet Address"
-            value={escrowAddress}
-            onChange={(e) => setEscrowAddress(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Token Address"
-            value={tokenAddress}
-            onChange={(e) => setTokenAddress(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Amount in ETH"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-          />
-          <button className="deposit-button" onClick={handleDeposit} >
-            "Deposit ETH & Mint Tokens"
+          <input type="text" placeholder="Escrow Wallet Address" value={escrowAddress} onChange={(e) => setEscrowAddress(e.target.value)} />
+          <input type="text" placeholder="Token Address" value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} />
+          <input type="text" placeholder="Token Price Manager Address" value={priceManagerAddress} onChange={(e) => setPriceManagerAddress(e.target.value)} />
+          <input type="text" placeholder="Amount in ETH" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <input type="text" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+          {otpSent && (
+            <input type="text" placeholder="OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+          )}
+          <button className="deposit-button" onClick={handleDeposit}>
+            {loading ? "Processing..." : "Deposit ETH & Mint Tokens"}
           </button>
         </div>
-
-        <div className="investments-summary">
-          <h2>Your Investments</h2>
-          <div className="investment-list">
-            {investments.length > 0 ? (
-              investments.map((investment, index) => (
-                <div className="investment-card" key={index}>
-                  <h4>{investment.company}</h4>
-                  <p>Escrow Wallet Address: {investment.escrowAddress}</p>
-                  <p>Amount Deposited: {investment.amountDeposited} ETH</p>
-                  <p>Tokens Received: {investment.tokensReceived}</p>
-                  <p>Current Token Price: {investment.tokenPrice} tokens/ETH</p>
-                </div>
-              ))
-            ) : (
-              <p>No investments yet.</p>
-            )}
-          </div>
-        </div>
+      </div>
+      <div>
+        <h2>Current Token Price: {tokenPrice.toString()} ETH</h2>
+      </div>
+      <div>
+        <h2>Investment Records</h2>
+        <ul>
+          {investments.map((investment, index) => (
+            <li key={index}>
+              {investment.company}: {investment.amountDeposited} ETH - {investment.tokensReceived} Tokens
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

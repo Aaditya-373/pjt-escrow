@@ -12,6 +12,20 @@ async function main() {
     const token = await Token.deploy(hre.ethers.utils.parseUnits("1000000", 18)); // 1 million tokens
     await token.deployTransaction.wait();
     console.log("Token contract deployed to:", token.address);
+
+    // Deploy DemandBasedToken contract with an initial price (set to 0.01 ETH)
+    const initialDemandTokenPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
+    const DemandBasedToken = await hre.ethers.getContractFactory("DemandBasedToken");
+    const demandBasedToken = await DemandBasedToken.deploy(initialDemandTokenPrice);
+    await demandBasedToken.deployTransaction.wait();
+    console.log("DemandBasedToken deployed to:", demandBasedToken.address);
+
+    // Deploy TokenPriceManager contract
+    const initialPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
+    const TokenPriceManager = await hre.ethers.getContractFactory("TokenPriceManager");
+    const tokenPriceManager = await TokenPriceManager.deploy(token.address, escrowWallet.address, escrowWallet.address, initialPrice);
+    await tokenPriceManager.deployTransaction.wait();
+    console.log("TokenPriceManager deployed to:", tokenPriceManager.address);
 }
 
 main()

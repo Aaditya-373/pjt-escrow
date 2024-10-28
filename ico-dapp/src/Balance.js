@@ -47,7 +47,7 @@ function Balance() {
     if (account) {
       fetchBalance();
     }
-  }, [account]);
+  }, [account,balance]);
 
   return (
     <div className="balance-container">
