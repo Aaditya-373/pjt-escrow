@@ -67,7 +67,7 @@ app.post('/verify-otp', async (req, res) => {
     }
 });
 
-// Endpoint to send a transaction message
+
 app.post('/send-transaction-message', async (req, res) => {
     const {phoneNumber } = req.body;  // You can hardcode the number if necessary
     console.log(req.body)
@@ -85,6 +85,7 @@ app.post('/send-transaction-message', async (req, res) => {
         return res.status(500).send({ message: 'Failed to send transaction message', error });
     }
 });
+
 
 
 app.listen(port, () => {
