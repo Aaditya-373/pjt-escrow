@@ -1,10 +1,10 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\contracts\\Escrow.sol": {
-      "lastModificationDate": 1729761236617,
-      "contentHash": "b6cb74f9e9f19398dd21806efb9fc182",
-      "sourceName": "contracts/Escrow.sol",
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\CompanyRegistry.sol": {
+      "lastModificationDate": 1730091738003,
+      "contentHash": "127e242303e8ea8dc1efd920b3b46d18",
+      "sourceName": "contracts/CompanyRegistry.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -34,49 +34,13 @@
         "^0.8.20"
       ],
       "artifacts": [
-        "EscrowWallet"
+        "CompanyRegistry"
       ]
     },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\contracts\\Lock.sol": {
-      "lastModificationDate": 1729761236623,
-      "contentHash": "105c3bc5fcbf8b6144a1a4a2cfabd8aa",
-      "sourceName": "contracts/Lock.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Lock"
-      ]
-    },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\contracts\\Token.sol": {
-      "lastModificationDate": 1729761236628,
-      "contentHash": "236fe7053dfb755a6f106de622478bcc",
-      "sourceName": "contracts/Token.sol",
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\DemandBasedToken.sol": {
+      "lastModificationDate": 1730053410404,
+      "contentHash": "d10c1fcb80658e99a8f7a6e4d29e7d47",
+      "sourceName": "contracts/DemandBasedToken.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -105,14 +69,14 @@
         "@openzeppelin/contracts/token/ERC20/ERC20.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.0"
       ],
       "artifacts": [
-        "Token"
+        "DemandBasedToken"
       ]
     },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
-      "lastModificationDate": 1729765948438,
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
+      "lastModificationDate": 1730053596644,
       "contentHash": "38910c3dfa5e3778fac8888b1d714084",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -152,8 +116,80 @@
         "ERC20"
       ]
     },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
-      "lastModificationDate": 1729765948006,
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
+      "lastModificationDate": 1730053596968,
+      "contentHash": "8f19f64d2adadf448840908bbaf431c8",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
+      "lastModificationDate": 1730053596511,
+      "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Context"
+      ]
+    },
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
+      "lastModificationDate": 1730053596567,
       "contentHash": "267d92fe4de67b1bdb3302c08f387dbf",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -190,44 +226,8 @@
         "IERC721Errors"
       ]
     },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
-      "lastModificationDate": 1729765947915,
-      "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
-      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Context"
-      ]
-    },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
-      "lastModificationDate": 1729765949342,
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
+      "lastModificationDate": 1730053596976,
       "contentHash": "794db3115001aa372c79326fcfd44b1f",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
@@ -264,83 +264,9 @@
         "IERC20Metadata"
       ]
     },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
-      "lastModificationDate": 1729765949333,
-      "contentHash": "8f19f64d2adadf448840908bbaf431c8",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "IERC20"
-      ]
-    },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\contracts\\DemandBasedToken.sol": {
-      "lastModificationDate": 1730008752686,
-      "contentHash": "d76f1a372927df4fad01d6b3de2f7235",
-      "sourceName": "contracts/DemandBasedToken.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "DemandBasedToken"
-      ]
-    },
-    "D:\\VIT\\Project1\\pjt-escrow-varun\\HardhatSM\\contracts\\TokenPriceManager.sol": {
-      "lastModificationDate": 1730009326317,
-      "contentHash": "972f8d9cf2a13e32d70efbf3c0f7b23e",
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\TokenPriceManager.sol": {
+      "lastModificationDate": 1730053410405,
+      "contentHash": "abc29bf58131d772761edd72adcf1d14",
       "sourceName": "contracts/TokenPriceManager.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -375,6 +301,116 @@
       ],
       "artifacts": [
         "TokenPriceManager"
+      ]
+    },
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\Escrow.sol": {
+      "lastModificationDate": 1730053410404,
+      "contentHash": "3e285853de2c40ba9b0b64829622fff6",
+      "sourceName": "contracts/Escrow.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EscrowWallet"
+      ]
+    },
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\Token.sol": {
+      "lastModificationDate": 1730053410405,
+      "contentHash": "66fa6ad0d88c17720c3551ad2d6c15dc",
+      "sourceName": "contracts/Token.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Token"
+      ]
+    },
+    "C:\\Users\\User\\Desktop\\PJTEscrow\\pjt-escrow\\HardhatSM\\contracts\\Lock.sol": {
+      "lastModificationDate": 1730053410404,
+      "contentHash": "a5eb11f8999b5800b56dc6f6f445d069",
+      "sourceName": "contracts/Lock.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Lock"
       ]
     }
   }

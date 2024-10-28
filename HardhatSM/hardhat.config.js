@@ -6,7 +6,7 @@ module.exports = {
   networks: {
     localhost: {
       url: "http://127.0.0.1:7545",  // Ganache network URL
-      accounts: ["0x039ad63c0636684ac76b6ea650c1b42738e02bcade60bb588daf925c5fc915ff"] // Private key of your Ganache account
+      accounts: ["0xa188ce22ae0699196f9cceb6421a66478cce9f7faab2905f2263d86bb1865563", "0xa188ce22ae0699196f9cceb6421a66478cce9f7faab2905f2263d86bb1865563",] // Private key of your Ganache account
     }
   }
 };

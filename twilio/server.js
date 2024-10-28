@@ -69,7 +69,7 @@ app.post('/verify-otp', async (req, res) => {
 
 // Endpoint to send a transaction message
 app.post('/send-transaction-message', async (req, res) => {
-    const {phoneNumber } = req.body;  // You can hardcode the number if necessary
+    const { phoneNumber } = req.body;  // You can hardcode the number if necessary
     console.log(req.body)
     try {
         const message = await client.messages.create({
