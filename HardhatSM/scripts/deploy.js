@@ -1,17 +1,19 @@
 const hre = require("hardhat");
+const { companyRegistryAddress } = require("../config"); // Import CompanyRegistry address
 
 async function main() {
-    // Deploy EscrowWallet contract
+    const [deployer] = await hre.ethers.getSigners();
+
+    // Load existing CompanyRegistry contract
+    const CompanyRegistry = await hre.ethers.getContractFactory("CompanyRegistry");
+    const companyRegistry = await CompanyRegistry.attach(companyRegistryAddress);
+
+    // Deploy new EscrowWallet contract
     const EscrowWallet = await hre.ethers.getContractFactory("EscrowWallet");
     const escrowWallet = await EscrowWallet.deploy();
     await escrowWallet.deployTransaction.wait();
     console.log("EscrowWallet deployed to:", escrowWallet.address);
 
-    // Deploy Token contract with an initial supply of 1 million tokens
-    const Token = await hre.ethers.getContractFactory("Token");
-    const token = await Token.deploy(hre.ethers.utils.parseUnits("1000000", 18)); // 1 million tokens
-    await token.deployTransaction.wait();
-    console.log("Token contract deployed to:", token.address);
 
     // Deploy DemandBasedToken contract with an initial price (set to 0.01 ETH)
     const initialDemandTokenPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
@@ -23,9 +25,15 @@ async function main() {
     // Deploy TokenPriceManager contract
     const initialPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
     const TokenPriceManager = await hre.ethers.getContractFactory("TokenPriceManager");
-    const tokenPriceManager = await TokenPriceManager.deploy(token.address, escrowWallet.address, escrowWallet.address, initialPrice);
+    const tokenPriceManager = await TokenPriceManager.deploy(demandBasedToken.address, escrowWallet.address, escrowWallet.address, initialPrice);
     await tokenPriceManager.deployTransaction.wait();
     console.log("TokenPriceManager deployed to:", tokenPriceManager.address);
+
+    // Register the new company with the existing CompanyRegistry
+    const companyName = process.argv[2] || "New Company";
+    const tx = await companyRegistry.registerCompany(companyName, escrowWallet.address, demandBasedToken.address);
+    await tx.wait();
+    console.log(`${companyName} registered in CompanyRegistry`);
 }
 
 main()

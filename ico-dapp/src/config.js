@@ -1,0 +1,1 @@
+module.exports = { companyRegistryAddress: "0x83adFA5849A59Db1A79e79E53d90B044427435c3" };

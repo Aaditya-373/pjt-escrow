@@ -4,13 +4,12 @@ import { ethers } from "ethers";
 import EscrowWallet from "./abis/EscrowWallet.json";
 import DemandBasedToken from "./abis/DemandBasedToken.json"; 
 import TokenPriceManager from "./abis/TokenPriceManager.json";
-import './App.css';
+import CompanyRegistry from "./abis/CompanyRegistry.json";
+import './App.css'; // Import your CSS file for styling
 import Balance from "./Balance";
-
-// EscrowWallet deployed to: 0x59f6452fb1E2348E2FB3f47CDdfC211832e20C8D
-// Token contract deployed to: 0xDf3a1fC41d9a80c8932B06332a6483Be407A6328
-// DemandBasedToken deployed to: 0x790a63D09b36fDf133139542212D0B734C9FDef3
-// TokenPriceManager deployed to: 0x6f4387411174B2f21f1808BC0887520EE56D37B5
+import Modal from "react-modal";
+const { companyRegistryAddress } = require("./config"); // Import CompanyRegistry address
+// Make sure you have this logo in your project
 
 const App = () => {
   const [account, setAccount] = useState("");
@@ -24,6 +23,8 @@ const App = () => {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const loadProvider = async () => {
@@ -39,47 +40,77 @@ const App = () => {
     }
 
     loadProvider();
+    loadRegisteredCompanies();
   }, [tokenPrice]);
+
+  const loadRegisteredCompanies = async () => {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const companyRegistry = new ethers.Contract(companyRegistryAddress, CompanyRegistry.abi, provider);
+  
+      // Try to call getRegisteredCompanies
+      const companyAddresses = await companyRegistry.getRegisteredCompanies();
+      const companyData = await Promise.all(companyAddresses.map(async (address) => {
+        const company = await companyRegistry.companies(address);
+        return {
+          name: company.name,
+          escrowAddress: company.escrowAddress,
+          tokenAddress: company.tokenAddress
+        };
+      }));
+      setCompanies(companyData);
+    } catch (error) {
+      console.error("Error loading registered companies:", error);
+      alert("Error loading registered companies. Please check the console for details.");
+    }
+  };
+  
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
 
   const handleDeposit = async () => {
     if (!escrowAddress || !tokenAddress || !priceManagerAddress || !amount || !phoneNumber) {
       alert("Please enter all required fields.");
       return;
     }
-
-    setLoading(true);
-
+  
+    // setLoading(true);
     try {
-      const otpResponse = await fetch('http://localhost:5000/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      if (!otpResponse.ok) throw new Error('Failed to send OTP');
-
-      setOtpSent(true);
-      alert('OTP sent successfully! Please check your phone.');
-      const enteredOtp = prompt("Please Enter your OTP :");
-      setOtp(enteredOtp);
-
-      if (otpSent) {
-        const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, otp }),
-        });
-
-        if (!verifyResponse.ok) throw new Error('Invalid OTP. Please try again.');
-
+      // Send OTP
+      // const otpResponse = await fetch('http://localhost:5000/send-otp', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ phoneNumber }),
+      // });
+  
+      // if (!otpResponse.ok) throw new Error('Failed to send OTP');
+  
+      // setOtpSent(true);
+      // alert('OTP sent successfully! Please check your phone.');
+      // const enteredOtp = prompt("Please Enter your OTP:");
+      // setOtp(enteredOtp);
+  
+      // if (otpSent) {
+      //   // Verify OTP
+      //   const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify({ phoneNumber, otp: enteredOtp }),
+      //   });
+  
+      //   if (!verifyResponse.ok) throw new Error('Invalid OTP. Please try again.');
+  
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-
+  
+        // Deposit transaction
         const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
         const depositTx = await escrowContract.deposit({ value: ethers.utils.parseEther(amount) });
         await depositTx.wait();
         console.log("Deposit transaction successful:", depositTx);
-
+  
         const transactionDetails = `
           Transaction Hash: ${depositTx.hash}
           Senders: ${depositTx.from}
@@ -90,24 +121,32 @@ const App = () => {
           Block Number: ${depositTx.blockNumber}
           Nonce: ${depositTx.nonce}
         `;
-
-        await fetch('http://localhost:5000/send-transaction-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, message: transactionDetails }),
-        });
-
-        const priceManagerContract = new ethers.Contract(priceManagerAddress, TokenPriceManager.abi, signer);
-        await priceManagerContract.updatePriceOnDeposit(ethers.utils.parseEther(amount));
-
-        const updatedPrice = await priceManagerContract.getTokenPrice();
-        setTokenPrice(updatedPrice);
-        console.log(updatedPrice);
-
+  
+        // await fetch('http://localhost:5000/send-transaction-message', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+        // });
+  
+       
+  
+        // Mint tokens
         const tokenContract = new ethers.Contract(tokenAddress, DemandBasedToken.abi, signer);
-        const mintTx = await tokenContract.mintTokens({ value: ethers.utils.parseEther(amount) });
+        // const mintTx = await tokenContract.mintTokens({ value: ethers.utils.parseEther(amount) });
+        const mintTx = await tokenContract.connect(signer).mintTokens({ value: ethers.utils.parseEther(amount) });
         await mintTx.wait();
         console.log("Mint transaction successful:", mintTx);
+  
+         // Update token price
+          const priceManagerContract = new ethers.Contract(priceManagerAddress, TokenPriceManager.abi, signer);
+         
+          await priceManagerContract.updatePriceOnDeposit(ethers.utils.parseEther(amount));
+       
+          const updatedPrice = await priceManagerContract.getTokenPrice();
+          
+          setTokenPrice(updatedPrice);
+          console.log(updatedPrice);
+        
 
         const mintDetails = `
           Transaction Hash: ${mintTx.hash}
@@ -121,47 +160,49 @@ const App = () => {
           Block Number: ${mintTx.blockNumber}
           Nonce: ${mintTx.nonce}
         `;
-
-        await fetch('http://localhost:5000/send-transaction-message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber, message: mintDetails }),
-        });
-
+  
+        // await fetch('http://localhost:5000/send-transaction-message', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ phoneNumber, message: mintDetails }),
+        // });
+  
+        // Add investment entry
         setInvestments([
           ...investments,
           {
             company: `Company ${investments.length + 1}`,
-            escrowAddress: escrowAddress,
+            escrowAddress,
             amountDeposited: amount,
             tokensReceived: (amount * updatedPrice).toFixed(0),
             tokenPrice: updatedPrice,
           },
         ]);
-
+  
+        // Reset form
         setAmount("");
         setOtp("");
         setOtpSent(false);
         alert("Deposit and minting successful!");
-
-      }
+        
+      // } 
     } catch (error) {
       console.error("Error during deposit or token minting:", error);
       alert(`An error occurred during deposit or token minting: ${error.message}`);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
+  
 
   return (
     <div className="app">
       <header className="header">
         <h1>ICO Dashboard</h1>
         <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
+        <button onClick={toggleModal} className="show-companies-button">View Registered Companies</button>
       </header>
-      <div>
-        <Balance />
-      </div>
+      <div><Balance /></div>
       <div className="container">
         <div className="investment-form">
           <h2>Invest in a Company</h2>
@@ -190,6 +231,26 @@ const App = () => {
             </li>
           ))}
         </ul>
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={toggleModal}
+          className="company-modal"
+          overlayClassName="modal-overlay"  /* Custom overlay for no background */
+          ariaHideApp={false}
+        >
+          <h2>Available Companies for Investment</h2>
+          <ul>
+            {companies.map((company, index) => (
+              <li key={index}>
+                <h3>{company.name}</h3>
+                <p>Escrow Address: {company.escrowAddress}</p>
+                <p>Token Address: {company.tokenAddress}</p>
+              </li>
+            ))}
+          </ul>
+          <button onClick={toggleModal}>Close</button>
+        </Modal>
+
       </div>
     </div>
   );

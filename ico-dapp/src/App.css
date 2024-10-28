@@ -166,3 +166,90 @@ h1 {
   gap: 20px;
   /* Add space between grid items */
 }
+
+
+/* Overlay for dimmed or blurred background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Dim background */
+  backdrop-filter: blur(4px);
+  /* Adds blur effect */
+  z-index: 1000;
+}
+
+/* Centered Modal Styling */
+.company-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  /* Increase width */
+  max-width: 600px;
+  max-height: 80vh;
+  background-color: #1f1f1f;
+  padding: 30px;
+  border-radius: 10px;
+  color: #e0e0e0;
+  text-align: left;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  z-index: 1100;
+  /* Above overlay */
+}
+
+.company-modal h2 {
+  margin-bottom: 15px;
+  font-size: 24px;
+  color: #bb86fc;
+}
+
+/* Modal close button */
+.company-modal button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #bb86fc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+.company-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  /* Adjust color as needed */
+}
+
+.company-card h3 {
+  font-size: 18px;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.company-card p {
+  color: #d3d3d3;
+  margin: 5px 0;
+}
+
+
+.show-companies-button {
+  margin-left: 20px;
+  padding: 8px 16px;
+  background-color: #bb86fc;
+  font-weight: bolder;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
