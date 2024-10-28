@@ -67,7 +67,7 @@ const App = () => {
       return;
     }
 
-    setLoading(true);
+    // setLoading(true);
     try {
       const otpResponse = await fetch('http://localhost:5000/send-otp', {
         method: 'POST',
@@ -84,7 +84,7 @@ const App = () => {
     } catch (error) {
       console.error("Error sending OTP:", error);
       alert(error.message);
-      setLoading(false);
+      // setLoading(false);
       return;
     }
 
@@ -134,7 +134,7 @@ const App = () => {
         console.error("Error during deposit or token minting:", error);
         alert(`An error occurred during deposit or token minting: ${error.message}`);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     }
   };
