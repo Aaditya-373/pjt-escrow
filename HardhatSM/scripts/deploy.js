@@ -1,44 +1,54 @@
 const hre = require("hardhat");
-const { companyRegistryAddress } = require("../config"); // Import CompanyRegistry address
+const { companyRegistryAddress, companyAccountAddress } = require("../config");
 
 async function main() {
-    const [deployer] = await hre.ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
+  const companyRegistry = await hre.ethers.getContractAt(
+    "CompanyRegistry",
+    companyRegistryAddress
+  );
 
-    // Load existing CompanyRegistry contract
-    const CompanyRegistry = await hre.ethers.getContractFactory("CompanyRegistry");
-    const companyRegistry = await CompanyRegistry.attach(companyRegistryAddress);
+  const DemandBasedToken = await ethers.getContractFactory("DemandBasedToken");
+  const demandBasedToken = await DemandBasedToken.deploy(
+    hre.ethers.utils.parseUnits("0.01", "ether")
+  );
+  await demandBasedToken.deployed();
+  console.log("DemandBasedToken deployed to:", demandBasedToken.address);
 
-    // Deploy new EscrowWallet contract
-    const EscrowWallet = await hre.ethers.getContractFactory("EscrowWallet");
-    const escrowWallet = await EscrowWallet.deploy();
-    await escrowWallet.deployTransaction.wait();
-    console.log("EscrowWallet deployed to:", escrowWallet.address);
+  const EscrowWallet = await ethers.getContractFactory("EscrowWallet");
 
+  const escrowWallet = await EscrowWallet.deploy(
+    demandBasedToken.address,
+    companyAccountAddress
+  );
+  await escrowWallet.deployed();
+  console.log("EscrowWallet deployed to:", escrowWallet.address);
 
-    // Deploy DemandBasedToken contract with an initial price (set to 0.01 ETH)
-    const initialDemandTokenPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
-    const DemandBasedToken = await hre.ethers.getContractFactory("DemandBasedToken");
-    const demandBasedToken = await DemandBasedToken.deploy(initialDemandTokenPrice);
-    await demandBasedToken.deployTransaction.wait();
-    console.log("DemandBasedToken deployed to:", demandBasedToken.address);
+  // Grant MINTER_ROLE to EscrowWallet
+  const grantMintRoleTx = await demandBasedToken.grantRole(
+    hre.ethers.utils.id("MINTER_ROLE"),
+    escrowWallet.address
+  );
+  await grantMintRoleTx.wait();
+  console.log("EscrowWallet granted permission to mint tokens.");
 
-    // Deploy TokenPriceManager contract
-    const initialPrice = hre.ethers.utils.parseUnits("0.01", "ether"); // Change this value as needed
-    const TokenPriceManager = await hre.ethers.getContractFactory("TokenPriceManager");
-    const tokenPriceManager = await TokenPriceManager.deploy(demandBasedToken.address, escrowWallet.address, escrowWallet.address, initialPrice);
-    await tokenPriceManager.deployTransaction.wait();
-    console.log("TokenPriceManager deployed to:", tokenPriceManager.address);
+  const setMilestoneTx = await escrowWallet.setMilestone(5);
+  await setMilestoneTx.wait();
+  console.log("Milestones set in EscrowWallet");
 
-    // Register the new company with the existing CompanyRegistry
-    const companyName = process.argv[2] || "New Company";
-    const tx = await companyRegistry.registerCompany(companyName, escrowWallet.address, demandBasedToken.address);
-    await tx.wait();
-    console.log(`${companyName} registered in CompanyRegistry`);
+  const companyName = process.argv[2] || "New Company";
+  const tx = await companyRegistry.registerCompany(
+    companyName,
+    escrowWallet.address,
+    demandBasedToken.address
+  );
+  await tx.wait();
+  console.log(`${companyName} registered in CompanyRegistry`);
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

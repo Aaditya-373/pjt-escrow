@@ -183,25 +183,67 @@ h1 {
 }
 
 /* Centered Modal Styling */
+.company-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.company-card {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.company-card:hover {
+  background-color: #3d3d3d;
+}
+
+.company-card.selected {
+  background-color: #bb86fc;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.company-card h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.company-card p {
+  font-size: 14px;
+  margin: 3px 0;
+  color: #e0e0e0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
 .company-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 70%;
-  /* Increase width */
   max-width: 600px;
   max-height: 80vh;
   background-color: #1f1f1f;
   padding: 30px;
   border-radius: 10px;
   color: #e0e0e0;
-  text-align: left;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
-  z-index: 1100;
-  /* Above overlay */
 }
+
 
 .company-modal h2 {
   margin-bottom: 15px;
@@ -220,28 +262,6 @@ h1 {
   cursor: pointer;
   font-weight: bold;
 }
-
-
-.company-card {
-  border: 1px solid #ccc;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  background-color: #1a1a1a;
-  /* Adjust color as needed */
-}
-
-.company-card h3 {
-  font-size: 18px;
-  color: #ffffff;
-  margin-bottom: 10px;
-}
-
-.company-card p {
-  color: #d3d3d3;
-  margin: 5px 0;
-}
-
 
 .show-companies-button {
   margin-left: 20px;
