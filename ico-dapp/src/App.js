@@ -21,6 +21,8 @@ const App = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [companies, setCompanies] = useState([]);
+  const [selectedCompany, setSelectedCompany] = useState(null); // New state
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -181,19 +183,28 @@ const App = () => {
           isOpen={isModalOpen}
           onRequestClose={toggleModal}
           className="company-modal"
-          overlayClassName="modal-overlay"  /* Custom overlay for no background */
+          overlayClassName="modal-overlay"
           ariaHideApp={false}
         >
           <h2>Available Companies for Investment</h2>
-          <ul>
+          <div className="company-list">
             {companies.map((company, index) => (
-              <li key={index}>
+              <div
+                key={index}
+                className={`company-card ${selectedCompany === index ? "selected" : ""}`}
+                onClick={() => {
+                  setSelectedCompany(index);
+                  setEscrowAddress(company.escrowAddress);
+                  setTokenAddress(company.tokenAddress);
+                  toggleModal();
+                }}
+              >
                 <h3>{company.name}</h3>
-                <p>Escrow Address: {company.escrowAddress}</p>
-                <p>Token Address: {company.tokenAddress}</p>
-              </li>
+                <p><strong>Escrow Address:</strong> {company.escrowAddress}</p>
+                <p><strong>Token Address:</strong> {company.tokenAddress}</p>
+              </div>
             ))}
-          </ul>
+          </div>
           <button onClick={toggleModal}>Close</button>
         </Modal>
 
