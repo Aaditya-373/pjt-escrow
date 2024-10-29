@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import EscrowWallet from "./abis/EscrowWallet.json";
-import DemandBasedToken from "./abis/DemandBasedToken.json"; 
-import TokenPriceManager from "./abis/TokenPriceManager.json";
+import DemandBasedToken from "./abis/DemandBasedToken.json";
 import CompanyRegistry from "./abis/CompanyRegistry.json";
-import './App.css'; // Import your CSS file for styling
+import "./App.css"; // Import your CSS file for styling
 import Balance from "./Balance";
 import Modal from "react-modal";
 const { companyRegistryAddress } = require("./config"); // Import CompanyRegistry address
@@ -16,9 +15,7 @@ const App = () => {
   const [amount, setAmount] = useState("");
   const [investments, setInvestments] = useState([]);
   const [escrowAddress, setEscrowAddress] = useState("");
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [priceManagerAddress, setPriceManagerAddress] = useState("");
-  const [tokenPrice, setTokenPrice] = useState(100); 
+  const [tokenPrice, setTokenPrice] = useState(0.5);
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -30,7 +27,9 @@ const App = () => {
     const loadProvider = async () => {
       const { ethereum } = window;
       if (!ethereum) return;
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
       setAccount(accounts[0]);
     };
 
@@ -46,173 +45,269 @@ const App = () => {
   const loadRegisteredCompanies = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const companyRegistry = new ethers.Contract(companyRegistryAddress, CompanyRegistry.abi, provider);
-  
+      const companyRegistry = new ethers.Contract(
+        companyRegistryAddress,
+        CompanyRegistry.abi,
+        provider
+      );
+
       // Try to call getRegisteredCompanies
       const companyAddresses = await companyRegistry.getRegisteredCompanies();
-      const companyData = await Promise.all(companyAddresses.map(async (address) => {
-        const company = await companyRegistry.companies(address);
-        return {
-          name: company.name,
-          escrowAddress: company.escrowAddress,
-          tokenAddress: company.tokenAddress
-        };
-      }));
+      const companyData = await Promise.all(
+        companyAddresses.map(async (address) => {
+          const company = await companyRegistry.companies(address);
+          return {
+            name: company.name,
+            escrowAddress: company.escrowAddress,
+            tokenAddress: company.tokenAddress,
+          };
+        })
+      );
       setCompanies(companyData);
     } catch (error) {
       console.error("Error loading registered companies:", error);
-      alert("Error loading registered companies. Please check the console for details.");
+      alert(
+        "Error loading registered companies. Please check the console for details."
+      );
     }
   };
-  
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  // const handleDeposit = async () => {
+  //   if (
+  //     !escrowAddress ||
+  //     !tokenAddress ||
+  //     !priceManagerAddress ||
+  //     !amount ||
+  //     !phoneNumber
+  //   ) {
+  //     alert("Please enter all required fields.");
+  //     return;
+  //   }
+
+  //   // setLoading(true);
+  //   try {
+  //     // Send OTP
+  //     // const otpResponse = await fetch('http://localhost:5000/send-otp', {
+  //     //   method: 'POST',
+  //     //   headers: { 'Content-Type': 'application/json' },
+  //     //   body: JSON.stringify({ phoneNumber }),
+  //     // });
+
+  //     // if (!otpResponse.ok) throw new Error('Failed to send OTP');
+
+  //     // setOtpSent(true);
+  //     // alert('OTP sent successfully! Please check your phone.');
+  //     // const enteredOtp = prompt("Please Enter your OTP:");
+  //     // setOtp(enteredOtp);
+
+  //     // if (otpSent) {
+  //     //   // Verify OTP
+  //     //   const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
+  //     //     method: 'POST',
+  //     //     headers: { 'Content-Type': 'application/json' },
+  //     //     body: JSON.stringify({ phoneNumber, otp: enteredOtp }),
+  //     //   });
+
+  //     //   if (!verifyResponse.ok) throw new Error('Invalid OTP. Please try again.');
+
+  //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //     const signer = provider.getSigner();
+
+  //     // Deposit transaction
+  //     const escrowContract = new ethers.Contract(
+  //       escrowAddress,
+  //       EscrowWallet.abi,
+  //       signer
+  //     );
+  //     const depositTx = await escrowContract.deposit({
+  //       value: ethers.utils.parseEther(amount),
+  //     });
+  //     await depositTx.wait();
+  //     console.log("Deposit transaction successful:", depositTx);
+
+  //     const transactionDetails = `
+  //         Transaction Hash: ${depositTx.hash}
+  //         Senders: ${depositTx.from}
+  //         Receivers: ${depositTx.to}
+  //         Amount: ${amount} ETH
+  //         Gas Used: ${depositTx.gasPrice.toString()}
+  //         ChainID: ${depositTx.chainId}
+  //         Block Number: ${depositTx.blockNumber}
+  //         Nonce: ${depositTx.nonce}
+  //       `;
+
+  //     // await fetch('http://localhost:5000/send-transaction-message', {
+  //     //   method: 'POST',
+  //     //   headers: { 'Content-Type': 'application/json' },
+  //     //   body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+  //     // });
+
+  //     // Mint tokens
+  //     // Mint tokens
+  //     // const tokenContract = new ethers.Contract(
+  //     //   tokenAddress,
+  //     //   DemandBasedToken.abi,
+  //     //   signer
+  //     // );
+  //     // const mintTx = await tokenContract
+  //     //   .connect(signer)
+  //     //   .mintTokens(account, ethers.utils.parseEther(amount)); // Correct
+
+  //     // await mintTx.wait();
+  //     // console.log("Mint transaction successful:", mintTx);
+
+  //     // Update token price
+  //     // const priceManagerContract = new ethers.Contract(
+  //     //   priceManagerAddress,
+  //     //   TokenPriceManager.abi,
+  //     //   signer
+  //     // );
+  //     // console.log(priceManagerContract)
+  //     // await priceManagerContract
+  //     //   .connect(signer)
+  //     //   .updatePriceOnDeposit(ethers.utils.parseEther(amount));
+  //     // console.log("hi2")
+  //     // await priceManagerContract.wait();
+  //     // console.log("hi3")
+  //     // const updatedPrice = await priceManagerContract.getTokenPrice();
+
+  //     // setTokenPrice(updatedPrice);
+  //     // console.log(updatedPrice);
+
+  //     // const mintDetails = `
+  //     //     Transaction Hash: ${mintTx.hash}
+  //     //     Senders: ${mintTx.from}
+  //     //     Receivers: ${mintTx.to}
+  //     //     TokenPrice: ${tokenPrice} ETH
+  //     //     Tokens: ${(amount * tokenPrice).toFixed(0)}
+  //     //     Amount: ${amount} ETH
+  //     //     Gas Used: ${mintTx.gasPrice.toString()}
+  //     //     ChainID: ${mintTx.chainId}
+  //     //     Block Number: ${mintTx.blockNumber}
+  //     //     Nonce: ${mintTx.nonce}
+  //     //   `;
+
+  //     // await fetch('http://localhost:5000/send-transaction-message', {
+  //     //   method: 'POST',
+  //     //   headers: { 'Content-Type': 'application/json' },
+  //     //   body: JSON.stringify({ phoneNumber, message: mintDetails }),
+  //     // });
+
+  //     // Add investment entry
+  //     setInvestments([
+  //       ...investments,
+  //       {
+  //         company: `Company ${investments.length + 1}`,
+  //         escrowAddress,
+  //         amountDeposited: amount,
+  //         tokensReceived: (amount * tokenPrice).toFixed(0),
+  //         tokenPrice: tokenPrice,
+  //       },
+  //     ]);
+
+  //     // Reset form
+  //     setAmount("");
+  //     setOtp("");
+  //     setOtpSent(false);
+  //     alert("Deposit and minting successful!");
+
+  //     // }
+  //   } catch (error) {
+  //     console.error("Error during deposit or token minting:", error);
+  //     alert(
+  //       `An error occurred during deposit or token minting: ${error.message}`
+  //     );
+  //   } finally {
+  //     // setLoading(false);
+  //   }
+  // };
   const handleDeposit = async () => {
-    if (!escrowAddress || !tokenAddress || !priceManagerAddress || !amount || !phoneNumber) {
-      alert("Please enter all required fields.");
-      return;
+    if (!escrowAddress || !amount || !phoneNumber) {
+        alert("Please enter all required fields.");
+        return;
     }
-  
-    // setLoading(true);
+
     try {
-      // Send OTP
-      // const otpResponse = await fetch('http://localhost:5000/send-otp', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ phoneNumber }),
-      // });
-  
-      // if (!otpResponse.ok) throw new Error('Failed to send OTP');
-  
-      // setOtpSent(true);
-      // alert('OTP sent successfully! Please check your phone.');
-      // const enteredOtp = prompt("Please Enter your OTP:");
-      // setOtp(enteredOtp);
-  
-      // if (otpSent) {
-      //   // Verify OTP
-      //   const verifyResponse = await fetch('http://localhost:5000/verify-otp', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({ phoneNumber, otp: enteredOtp }),
-      //   });
-  
-      //   if (!verifyResponse.ok) throw new Error('Invalid OTP. Please try again.');
-  
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-  
-        // Deposit transaction
+
         const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
-        const depositTx = await escrowContract.deposit({ value: ethers.utils.parseEther(amount) });
+
+        const depositTx = await escrowContract.deposit({
+            value: ethers.utils.parseEther(amount),
+        });
         await depositTx.wait();
         console.log("Deposit transaction successful:", depositTx);
-  
-        const transactionDetails = `
-          Transaction Hash: ${depositTx.hash}
-          Senders: ${depositTx.from}
-          Receivers: ${depositTx.to}
-          Amount: ${amount} ETH
-          Gas Used: ${depositTx.gasPrice.toString()}
-          ChainID: ${depositTx.chainId}
-          Block Number: ${depositTx.blockNumber}
-          Nonce: ${depositTx.nonce}
-        `;
-  
-        // await fetch('http://localhost:5000/send-transaction-message', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ phoneNumber, message: transactionDetails }),
-        // });
-  
-       
-  
-        // Mint tokens
-        const tokenContract = new ethers.Contract(tokenAddress, DemandBasedToken.abi, signer);
-        // const mintTx = await tokenContract.mintTokens({ value: ethers.utils.parseEther(amount) });
-        const mintTx = await tokenContract.connect(signer).mintTokens({ value: ethers.utils.parseEther(amount) });
-        await mintTx.wait();
-        console.log("Mint transaction successful:", mintTx);
-  
-         // Update token price
-          const priceManagerContract = new ethers.Contract(priceManagerAddress, TokenPriceManager.abi, signer);
-         
-          await priceManagerContract.updatePriceOnDeposit(ethers.utils.parseEther(amount));
-       
-          const updatedPrice = await priceManagerContract.getTokenPrice();
-          
-          setTokenPrice(updatedPrice);
-          console.log(updatedPrice);
-        
 
-        const mintDetails = `
-          Transaction Hash: ${mintTx.hash}
-          Senders: ${mintTx.from}
-          Receivers: ${mintTx.to}
-          TokenPrice: ${updatedPrice} ETH
-          Tokens: ${(amount * updatedPrice).toFixed(0)}
-          Amount: ${amount} ETH
-          Gas Used: ${mintTx.gasPrice.toString()}
-          ChainID: ${mintTx.chainId}
-          Block Number: ${mintTx.blockNumber}
-          Nonce: ${mintTx.nonce}
-        `;
-  
-        // await fetch('http://localhost:5000/send-transaction-message', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ phoneNumber, message: mintDetails }),
-        // });
-  
-        // Add investment entry
         setInvestments([
-          ...investments,
-          {
-            company: `Company ${investments.length + 1}`,
-            escrowAddress,
-            amountDeposited: amount,
-            tokensReceived: (amount * updatedPrice).toFixed(0),
-            tokenPrice: updatedPrice,
-          },
+            ...investments,
+            {
+                company: `Company ${investments.length + 1}`,
+                escrowAddress,
+                amountDeposited: amount,
+                tokensReceived: (amount * tokenPrice).toFixed(0),
+                tokenPrice: tokenPrice,
+            },
         ]);
-  
-        // Reset form
+
         setAmount("");
         setOtp("");
         setOtpSent(false);
         alert("Deposit and minting successful!");
-        
-      // } 
+
     } catch (error) {
-      console.error("Error during deposit or token minting:", error);
-      alert(`An error occurred during deposit or token minting: ${error.message}`);
-    } finally {
-      // setLoading(false);
+        console.error("Error during deposit or token minting:", error);
+        alert(`An error occurred: ${error.message}`);
     }
-  };
-  
+};
+
 
   return (
     <div className="app">
       <header className="header">
         <h1>ICO Dashboard</h1>
-        <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
-        <button onClick={toggleModal} className="show-companies-button">View Registered Companies</button>
+        <button className="connect-wallet">
+          Connected Wallet: {account || "Connect"}
+        </button>
+        <button onClick={toggleModal} className="show-companies-button">
+          View Registered Companies
+        </button>
       </header>
-      <div><Balance /></div>
+      <div>
+        <Balance />
+      </div>
       <div className="container">
         <div className="investment-form">
           <h2>Invest in a Company</h2>
-          <input type="text" placeholder="Escrow Wallet Address" value={escrowAddress} onChange={(e) => setEscrowAddress(e.target.value)} />
-          <input type="text" placeholder="Token Address" value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} />
-          <input type="text" placeholder="Token Price Manager Address" value={priceManagerAddress} onChange={(e) => setPriceManagerAddress(e.target.value)} />
-          <input type="text" placeholder="Amount in ETH" value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <input type="text" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Escrow Wallet Address"
+            value={escrowAddress}
+            onChange={(e) => setEscrowAddress(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Amount in ETH"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+          />
           {otpSent && (
-            <input type="text" placeholder="OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+            <input
+              type="text"
+              placeholder="OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+            />
           )}
           <button className="deposit-button" onClick={handleDeposit}>
             {loading ? "Processing..." : "Deposit ETH & Mint Tokens"}
@@ -227,7 +322,8 @@ const App = () => {
         <ul>
           {investments.map((investment, index) => (
             <li key={index}>
-              {investment.company}: {investment.amountDeposited} ETH - {investment.tokensReceived} Tokens
+              {investment.company}: {investment.amountDeposited} ETH -{" "}
+              {investment.tokensReceived} Tokens
             </li>
           ))}
         </ul>
@@ -235,10 +331,11 @@ const App = () => {
           isOpen={isModalOpen}
           onRequestClose={toggleModal}
           className="company-modal"
-          overlayClassName="modal-overlay"  /* Custom overlay for no background */
+          overlayClassName="modal-overlay" /* Custom overlay for no background */
           ariaHideApp={false}
         >
           <h2>Available Companies for Investment</h2>
+          {console.log(companies)}
           <ul>
             {companies.map((company, index) => (
               <li key={index}>
@@ -248,9 +345,9 @@ const App = () => {
               </li>
             ))}
           </ul>
+
           <button onClick={toggleModal}>Close</button>
         </Modal>
-
       </div>
     </div>
   );
