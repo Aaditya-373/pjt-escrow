@@ -22,6 +22,7 @@ const App = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [companies, setCompanies] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(false);
 
   useEffect(() => {
     const loadProvider = async () => {
@@ -266,91 +267,73 @@ const App = () => {
 };
 
 
-  return (
-    <div className="app">
-      <header className="header">
-        <h1>ICO Dashboard</h1>
-        <button className="connect-wallet">
-          Connected Wallet: {account || "Connect"}
+return (
+  <div className="app">
+    <header className="header">
+      <h1>ICO Dashboard</h1>
+      <button className="connect-wallet">Connected Wallet: {account || "Connect"}</button>
+      <button onClick={toggleModal} className="show-companies-button">View Registered Companies</button>
+    </header>
+    <div><Balance /></div>
+    <div className="container">
+      <div className="investment-form">
+        <h2>Invest in a Company</h2>
+        <input type="text" placeholder="Escrow Wallet Address" value={escrowAddress} onChange={(e) => setEscrowAddress(e.target.value)} />
+        <input type="text" placeholder="Amount in ETH" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <input type="text" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+        <button className="deposit-button" onClick={handleDeposit} disabled={loading}>
+          {loading ? "Processing..." : `"Deposit ETH & Mint Tokens"`}
         </button>
-        <button onClick={toggleModal} className="show-companies-button">
-          View Registered Companies
-        </button>
-      </header>
-      <div>
-        <Balance />
       </div>
-      <div className="container">
-        <div className="investment-form">
-          <h2>Invest in a Company</h2>
-          <input
-            type="text"
-            placeholder="Escrow Wallet Address"
-            value={escrowAddress}
-            onChange={(e) => setEscrowAddress(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Amount in ETH"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-          />
-          {otpSent && (
-            <input
-              type="text"
-              placeholder="OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
+
+      <div className="investments-summary">
+        <h2>Your Investments</h2>
+        <div className="investment-list">
+          {investments.length > 0 ? (
+            investments.map((investment, index) => (
+              <div className="investment-card" key={index}>
+                <h4>{investment.company}</h4>
+                <p>Escrow Wallet Address: {investment.escrowAddress}</p>
+                <p>Amount Deposited: {investment.amountDeposited} ETH</p>
+                <p>Tokens Received: {investment.tokensReceived}</p>
+                <p>Current Token Price: {investment.tokenPrice} tokens/ETH</p>
+              </div>
+            ))
+          ) : (
+            <p>No investments yet.</p>
           )}
-          <button className="deposit-button" onClick={handleDeposit}>
-            {loading ? "Processing..." : "Deposit ETH & Mint Tokens"}
-          </button>
         </div>
       </div>
-      <div>
-        <h2>Current Token Price: {tokenPrice.toString()} ETH</h2>
-      </div>
-      <div>
-        <h2>Investment Records</h2>
-        <ul>
-          {investments.map((investment, index) => (
-            <li key={index}>
-              {investment.company}: {investment.amountDeposited} ETH -{" "}
-              {investment.tokensReceived} Tokens
-            </li>
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={toggleModal}
+        className="company-modal"
+        overlayClassName="modal-overlay"
+        ariaHideApp={false}
+      >
+        <h2>Available Companies for Investment</h2>
+        <div className="company-list">
+          {companies.map((company, index) => (
+            <div
+              key={index}
+              className={`company-card ${selectedCompany === index ? "selected" : ""}`}
+              onClick={() => {
+                setSelectedCompany(index);
+                setEscrowAddress(company.escrowAddress);
+                toggleModal();
+              }}
+            >
+              <h3>{company.name}</h3>
+              <p><strong>Escrow Address:</strong> {company.escrowAddress}</p>
+            </div>
           ))}
-        </ul>
-        <Modal
-          isOpen={isModalOpen}
-          onRequestClose={toggleModal}
-          className="company-modal"
-          overlayClassName="modal-overlay" /* Custom overlay for no background */
-          ariaHideApp={false}
-        >
-          <h2>Available Companies for Investment</h2>
-          {console.log(companies)}
-          <ul>
-            {companies.map((company, index) => (
-              <li key={index}>
-                <h3>{company.name}</h3>
-                <p>Escrow Address: {company.escrowAddress}</p>
-                <p>Token Address: {company.tokenAddress}</p>
-              </li>
-            ))}
-          </ul>
+        </div>
+        <button onClick={toggleModal}>Close</button>
+      </Modal>
 
-          <button onClick={toggleModal}>Close</button>
-        </Modal>
-      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default App;
