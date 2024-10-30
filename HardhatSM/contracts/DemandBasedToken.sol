@@ -36,4 +36,9 @@ contract DemandBasedToken is ERC20, AccessControl {
         tokenPrice = initialPrice + increase;
         emit PriceUpdated(tokenPrice);
     }
+
+    function getTokenPrice() external view returns (uint256) {
+        return tokenPrice;
+}
+
 }

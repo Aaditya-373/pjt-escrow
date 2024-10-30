@@ -15,7 +15,7 @@ const App = () => {
   const [amount, setAmount] = useState("");
   const [investments, setInvestments] = useState([]);
   const [escrowAddress, setEscrowAddress] = useState("");
-  const [tokenPrice, setTokenPrice] = useState(0.5);
+  const [tokenPrice, setTokenPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -24,22 +24,22 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
 
-  useEffect(() => {
-    const loadProvider = async () => {
-      const { ethereum } = window;
-      if (!ethereum) return;
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setAccount(accounts[0]);
-    };
+  const loadProvider = async () => {
+    const { ethereum } = window;
+    if (!ethereum) return;
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    setAccount(accounts[0]);
+  };
 
+
+  useEffect(() => {
+    
     const savedInvestments = localStorage.getItem("investments");
     if (savedInvestments) {
       setInvestments(JSON.parse(savedInvestments));
     }
-
-    loadProvider();
     loadRegisteredCompanies();
   }, []);
 
@@ -69,7 +69,34 @@ const App = () => {
       alert("Error loading registered companies. Please check the console for details.");
     }
   };
+  const demandBasedTokenAddress = "0xbE979653d6725a46D6A92dbbD536665cf70669b5"
+  const loadTokenPrice = async () => {
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const tokenContract = new ethers.Contract(demandBasedTokenAddress, DemandBasedToken.abi, provider);
+    provider.getCode("0xbE979653d6725a46D6A92dbbD536665cf70669b5")
+    const price = await tokenContract.getTokenPrice(); // Fetch price from the contract
+    
+    setTokenPrice(ethers.utils.formatEther(price)); // Convert to ETH
+  } catch (error) {
+    console.error("Error fetching token price:", error);
+  }
+};
 
+  useEffect(() => {
+    const initialize = async () => {
+      await loadProvider();
+      await loadTokenPrice();
+      loadRegisteredCompanies();
+      const savedInvestments = localStorage.getItem("investments");
+      if (savedInvestments) {
+        setInvestments(JSON.parse(savedInvestments));
+      }
+    };
+    initialize();
+  }, []);
+
+  
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -139,13 +166,13 @@ const App = () => {
       });
       await depositTx.wait();
       console.log("Deposit transaction successful:", depositTx);
-
+      await loadTokenPrice();
       // Add investment entry
       const investmentEntry = {
         company: `Company ${investments.length + 1}`,
         escrowAddress,
         amountDeposited: amount,
-        tokensReceived: (amount * tokenPrice).toFixed(0),
+        tokensReceived: (amount / tokenPrice).toFixed(0),
         tokenPrice: tokenPrice,
       };
 
@@ -190,6 +217,7 @@ const App = () => {
       </header>
       <div><Balance /></div>
       <div className="container">
+      <h2>Current Token Price: {tokenPrice} ETH</h2>
         <div className="investment-form">
           <h2>Invest in a Company</h2>
           <input
