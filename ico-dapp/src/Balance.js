@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import './Balance.css'; // Import the new CSS styles
+import './Balance.css';
 
 function Balance() {
   const [account, setAccount] = useState(null);
@@ -37,17 +37,50 @@ function Balance() {
   // Automatically connect to MetaMask on page load
   useEffect(() => {
     const initialize = async () => {
-      await connectWallet(); // Attempt to connect wallet
+      await connectWallet();
     };
-
     initialize();
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          setLoading(true); // Show loading while fetching new balance
+        } else {
+          setAccount(null);
+          setBalance(null);
+        }
+      });
+
+      // Optional: listen for chain changes
+      window.ethereum.on('chainChanged', () => {
+        setLoading(true);
+        connectWallet(); // Reconnect and fetch balance
+      });
+    }
+
+    // Cleanup listeners on component unmount
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', connectWallet);
+        window.ethereum.removeListener('chainChanged', connectWallet);
+      }
+    };
   }, []);
 
+  // Fetch balance whenever the account updates
   useEffect(() => {
     if (account) {
       fetchBalance();
+
+      // Polling for balance updates every 10 seconds (optional)
+      const interval = setInterval(fetchBalance, 10000);
+
+      // Clear the interval on component unmount or when account changes
+      return () => clearInterval(interval);
     }
-  }, [account,balance]);
+  }, [account]);
 
   return (
     <div className="balance-container">

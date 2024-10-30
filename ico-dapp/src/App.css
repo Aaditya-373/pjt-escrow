@@ -33,6 +33,7 @@ h1 {
   background-color: #bb86fc;
   /* Purple for CTA */
   color: white;
+  font-weight: bolder;
   border: none;
   padding: 8px 15px;
   border-radius: 5px;
@@ -54,26 +55,56 @@ h1 {
 
 .investment-form {
   background-color: #1e1e1e;
-  /* Darker form background */
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .investment-form input {
-  width: 50%;
+  width: 90%;
+  max-width: 400px;
   padding: 10px;
   margin: 8px 0;
   border: 1px solid #333;
-  /* Dark border */
   border-radius: 5px;
   font-size: 14px;
   background-color: #2a2a2a;
-  /* Darker input background */
   color: #ffffff;
-  /* White text for inputs */
 }
+
+.send-otp-button {
+  width: auto;
+  padding: 10px 20px;
+  background-color: #bb86fc;
+  font-weight: bolder;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 8px 0;
+  align-self: flex-start;
+  margin-left: auto;
+}
+
+.verify-otp-button {
+  width: 90%;
+  max-width: 400px;
+  background-color: #bb86fc;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 15px;
+}
+
 
 .deposit-button {
   width: 50%;
@@ -118,7 +149,7 @@ h1 {
 .investment-card {
   background-color: #1e1e1e;
   /* Dark background for card */
-  width: 100%;
+  width: 80%;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -272,4 +303,47 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+/* Ensure a consistent width for all form elements */
+.invest-form input,
+.phone-number-container,
+.send-otp-button {
+  width: 100%;
+  max-width: 420px;
+  /* Adjust as needed */
+  box-sizing: border-box;
+  /* Ensures padding doesn’t increase overall width */
+}
+
+.invest-form input {
+  margin-bottom: 10px;
+  /* Space between inputs */
+}
+
+.phone-number-container {
+  display: flex;
+  align-items: center;
+}
+
+.phone-number-container input {
+  flex: 1;
+  /* Make input take the available space */
+}
+
+.send-otp-button {
+  width: 100px;
+  /* Fixed width for the button */
+  margin-left: 10px;
+  padding: 10px;
+  height: 100%;
+  /* Match height of input */
+}
+
+.sidebar {
+  width: 300px;
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-right: 1px solid #333;
+  overflow-y: auto;
 }

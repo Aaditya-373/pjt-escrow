@@ -16,14 +16,14 @@ app.use(cors(corsOptions));
 const port = 5000;
 
 // Twilio credentials from environment variables
-const accountSid = process.env.TWILIO_ACCOUNT_SID || 'AC6617c8f318e05ec6ebfc30cf901c0c70';
-const authToken = process.env.TWILIO_AUTH_TOKEN || '6c6e6adbf220c4deb436f654bb7ac032';
+const accountSid = process.env.TWILIO_ACCOUNT_SID || 'AC04c5fb8070c426028ffe42e5ea4c2716';
+const authToken = process.env.TWILIO_AUTH_TOKEN || 'e2e765bba4ab1f782758250b32e951f1';
 const client = twilio(accountSid, authToken);
 
 // Middleware
 app.use(bodyParser.json());
 
-const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID || "VA5f7086c15670e103cea73eee1d7c8acf"; // Ensure this matches your actual Verify Service SID
+const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID || "VAcb9e34fabc4b41d34cb20c69d2b60590"; // Ensure this matches your actual Verify Service SID
 
 // Endpoint to send OTP
 app.post('/send-otp', async (req, res) => {
@@ -69,13 +69,13 @@ app.post('/verify-otp', async (req, res) => {
 
 
 app.post('/send-transaction-message', async (req, res) => {
-    const {phoneNumber } = req.body;  // You can hardcode the number if necessary
+    const { phoneNumber } = req.body;  // You can hardcode the number if necessary
     console.log(req.body)
     try {
         const message = await client.messages.create({
             body: req.body.message,  // Message content
-            messagingServiceSid: "MGced665e12315f7a8b81042145feff8b9", // Add your Messaging Service SID
-            to: phoneNumber || '+917358645059',  // Recipient number
+            messagingServiceSid: "MGdea3d4d2775ffa58bc2e79dcd437047f", // Add your Messaging Service SID
+            to: phoneNumber || '+918637489746',  // Recipient number
         });
 
         console.log("Transaction message sent:", message.sid);
