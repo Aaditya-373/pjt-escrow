@@ -23,6 +23,7 @@ const App = () => {
   const [companies, setCompanies] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [refreshTokenPrices, setRefreshTokenPrices] = useState(false);
 
   const loadProvider = async () => {
     const { ethereum } = window;
@@ -77,7 +78,9 @@ const App = () => {
         provider
       );
       const price = await tokenContract.getTokenPrice();
-      setTokenPrice(ethers.utils.formatEther(price));
+      const formattedPrice = ethers.utils.formatEther(price);
+      setTokenPrice(formattedPrice);
+      return formattedPrice; // Add this return statement
     } catch (error) {
       console.error("Error fetching token price:", error);
     }
@@ -93,6 +96,52 @@ const App = () => {
   useEffect(() => {
     initialize();
   }, []);
+
+  useEffect(() => {
+    // Function to update token prices from localStorage
+    const updateTokenPrices = () => {
+      const currentTokenPrices = JSON.parse(
+        localStorage.getItem("currentTokenPrices")
+      );
+      if (currentTokenPrices && selectedCompany) {
+        setTokenPrice(
+          currentTokenPrices[selectedCompany.tokenAddress] ||
+            "Price not available"
+        );
+      }
+    };
+
+    // Call updateTokenPrices initially
+    updateTokenPrices();
+
+    // Listen for changes in localStorage
+    const onStorageChange = (event) => {
+      if (event.key === "currentTokenPrices") {
+        updateTokenPrices();
+      }
+    };
+    window.addEventListener("storage", onStorageChange);
+
+    return () => window.removeEventListener("storage", onStorageChange);
+  }, [selectedCompany]);
+
+  useEffect(() => {
+    const handleTokenPriceUpdate = () => {
+      const currentTokenPrices = JSON.parse(
+        localStorage.getItem("currentTokenPrices")
+      );
+      if (currentTokenPrices && selectedCompany) {
+        setTokenPrice(
+          currentTokenPrices[selectedCompany.tokenAddress] ||
+            "Price not available"
+        );
+      }
+    };
+
+    window.addEventListener("tokenPriceUpdated", handleTokenPriceUpdate);
+    return () =>
+      window.removeEventListener("tokenPriceUpdated", handleTokenPriceUpdate);
+  }, [selectedCompany]);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -150,9 +199,7 @@ const App = () => {
     }
 
     try {
-      // const selectedTokenPrice = await loadTokenPrice(selectedCompany.tokenAddress);
       const selectedTokenPrice = tokenPrice;
-
       if (!selectedTokenPrice) {
         alert("Token price not found for the selected token address.");
         return;
@@ -183,18 +230,36 @@ const App = () => {
       setInvestments(updatedInvestments);
       localStorage.setItem("investments", JSON.stringify(updatedInvestments));
 
+      // Ensure currentTokenPrices is initialized as an object in localStorage
+      let currentTokenPrices = JSON.parse(
+        localStorage.getItem("currentTokenPrices") || "{}"
+      );
+      if (typeof currentTokenPrices !== "object") {
+        currentTokenPrices = {};
+      }
+
+      // Update token price in currentTokenPrices
+      console.log(selectedCompany.tokenAddress);
+      let updatedPrice = await loadTokenPrice(selectedCompany.tokenAddress);
+      console.log(updatedPrice);
+      currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
+      localStorage.setItem(
+        "currentTokenPrices",
+        JSON.stringify(currentTokenPrices)
+      );
+
       alert("Deposit successful!");
       setAmount("");
       setOtp("");
       setOtpSent(false);
       setTokenPrice("Select a Company");
       setSelectedCompany(null);
-      setAmount("");
       setEscrowAddress("");
       setPhoneNumber("");
+      setRefreshTokenPrices((prev) => !prev);
     } catch (error) {
       console.error(
-        "Error during deposit or sending investment details:",
+        "Error during deposit or saving investment details:",
         error
       );
       alert(`An error occurred: ${error.message}`);
@@ -212,114 +277,124 @@ const App = () => {
           View Registered Companies
         </button>
       </header>
-      <div>
-        <Balance />
-        <TokenPrices />
-      </div>
-      <div className="container">
-        <h2>Current Token Price: {tokenPrice} ETH</h2>
-        <div className="investment-form">
-          <h2>Invest in a Company</h2>
-          <input
-            type="text"
-            placeholder="Escrow Wallet Address"
-            value={escrowAddress}
-            onChange={(e) => setEscrowAddress(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Amount in ETH"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <div className="phone-number-container">
-            <input
-              type="text"
-              placeholder="Phone Number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-            <button
-              className="send-otp-button"
-              onClick={handleSendOtp}
-              disabled={loading}
-            >
-              {otpSent ? "OTP Sent" : "Send OTP"}
-            </button>
-          </div>
 
-          {otpSent && (
-            <>
+      <div class="parent">
+        <div class="left">
+         
+          <div className="container">
+            <h2>Current Token Price: {tokenPrice} ETH</h2>
+            <div className="investment-form">
+              <h2>Invest in a Company</h2>
               <input
                 type="text"
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Escrow Wallet Address"
+                value={escrowAddress}
+                onChange={(e) => setEscrowAddress(e.target.value)}
               />
-              <button className="verify-otp-button" onClick={handleVerifyOtp}>
-                Verify OTP & Deposit ETH
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="investments-summary">
-          <h2>Your Investments</h2>
-          <div className="investment-list">
-            {investments.length > 0 ? (
-              investments.map((investment, index) => (
-                <div className="investment-card" key={index}>
-                  <h4>{investment.company}</h4>
-                  <p>Escrow Wallet Address: {investment.escrowAddress}</p>
-                  <p>Amount Deposited: {investment.amountDeposited} ETH</p>
-                  <p>Tokens Received: {investment.tokensReceived}</p>
-                  <p>
-                    Bought At Token Price: {investment.tokenPrice} ETH/token
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>No investments yet.</p>
-            )}
-          </div>
-        </div>
-        <Modal
-          isOpen={isModalOpen}
-          onRequestClose={toggleModal}
-          className="company-modal"
-          overlayClassName="modal-overlay"
-          ariaHideApp={false}
-        >
-          <h2>Available Companies for Investment</h2>
-          <div className="company-list">
-            {companies.map((company, index) => (
-              <div
-                key={index}
-                className={`company-card ${
-                  selectedCompany === index ? "selected" : ""
-                }`}
-                onClick={() => {
-                  setSelectedCompany(company);
-                  setEscrowAddress(company.escrowAddress);
-                  loadTokenPrice(company.tokenAddress);
-                  toggleModal();
-                }}
-              >
-                <h3>{company.name}</h3>
-                <p>
-                  <strong>Escrow Address:</strong> {company.escrowAddress}
-                </p>
-                <p>
-                  <strong>Token Address:</strong> {company.tokenAddress}
-                </p>
+              <input
+                type="text"
+                placeholder="Amount in ETH"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <div className="phone-number-container">
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+                <button
+                  className="send-otp-button"
+                  onClick={handleSendOtp}
+                  disabled={loading}
+                >
+                  {otpSent ? "OTP Sent" : "Send OTP"}
+                </button>
               </div>
-            ))}
+
+              {otpSent && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                  <button
+                    className="verify-otp-button"
+                    onClick={handleVerifyOtp}
+                  >
+                    Verify OTP & Deposit ETH
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="investments-summary">
+              <h2>Your Investments</h2>
+              <div className="investment-list">
+                {investments.length > 0 ? (
+                  investments.map((investment, index) => (
+                    <div className="investment-card" key={index}>
+                      <h4>{investment.company}</h4>
+                      <p>Escrow Wallet Address: {investment.escrowAddress}</p>
+                      <p>Amount Deposited: {investment.amountDeposited} ETH</p>
+                      <p>Tokens Received: {investment.tokensReceived}</p>
+                      <p>
+                        Bought At Token Price: {investment.tokenPrice} ETH/token
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No investments yet.</p>
+                )}
+              </div>
+            </div>
           </div>
-          <button className="close-modal-button" onClick={toggleModal}>
-            Close
-          </button>
-        </Modal>
+        </div>
+        <div class="right">
+          <Balance/>
+          <TokenPrices refresh={refreshTokenPrices} />
+        </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={toggleModal}
+        className="company-modal"
+        overlayClassName="modal-overlay"
+        ariaHideApp={false}
+      >
+        <h2>Available Companies for Investment</h2>
+        <div className="company-list">
+          {companies.map((company, index) => (
+            <div
+              key={index}
+              className={`company-card ${
+                selectedCompany === index ? "selected" : ""
+              }`}
+              onClick={() => {
+                setSelectedCompany(company);
+                setEscrowAddress(company.escrowAddress);
+                loadTokenPrice(company.tokenAddress);
+                toggleModal();
+              }}
+            >
+              <h3>{company.name}</h3>
+              <p>
+                <strong>Escrow Address:</strong> {company.escrowAddress}
+              </p>
+              <p>
+                <strong>Token Address:</strong> {company.tokenAddress}
+              </p>
+            </div>
+          ))}
+        </div>
+        <button className="close-modal-button" onClick={toggleModal}>
+          Close
+        </button>
+      </Modal>
     </div>
   );
 };

@@ -1,28 +1,31 @@
-// TokenPrices.js
 import React, { useState, useEffect } from "react";
-
-const TokenPrices = () => {
+import "./Tp.css"
+const TokenPrices = ({ refresh }) => {
   const [tokenPrices, setTokenPrices] = useState({});
 
   useEffect(() => {
     const fetchTokenPrices = () => {
-      const storedPrices = JSON.parse(localStorage.getItem("currentTokenPrices") || "{}");
-      setTokenPrices(storedPrices);
+      const storedPrices = JSON.parse(localStorage.getItem("currentTokenPrices"));
+      setTokenPrices(storedPrices || {});
     };
 
     fetchTokenPrices();
 
-    // Listen for changes in localStorage
-    const onStorageChange = () => fetchTokenPrices();
+    const onStorageChange = (event) => {
+      if (event.key === "currentTokenPrices") {
+        fetchTokenPrices();
+        window.dispatchEvent(new Event("tokenPriceUpdated")); // Trigger custom event
+      }
+    };
     window.addEventListener("storage", onStorageChange);
 
     return () => window.removeEventListener("storage", onStorageChange);
-  }, []);
+  }, [refresh]);
 
   return (
-    <div>
-      <h3>Token Prices</h3>
-      <table>
+    <div className="token-prices-container">
+      <h3 className="token-prices-header">Token Prices</h3>
+      <table className="token-prices-table">
         <thead>
           <tr>
             <th>Token Address</th>
