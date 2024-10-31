@@ -7,6 +7,7 @@ import "./App.css"; // Import your CSS file for styling
 import Balance from "./Balance";
 import Modal from "react-modal";
 import TokenPrices from "./TokenPrices";
+import EscrowBalance from "./Escrowbalance";
 
 const { companyRegistryAddress } = require("./config");
 
@@ -355,6 +356,7 @@ const App = () => {
         </div>
         <div class="right">
           <Balance/>
+          <EscrowBalance/>
           <TokenPrices refresh={refreshTokenPrices} />
         </div>
       </div>

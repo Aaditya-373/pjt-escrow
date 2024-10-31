@@ -40,3 +40,49 @@
     color: rgb(9, 205, 9);
   }
   
+  /* Tp.css */
+
+.escrow-balances {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.escrow-balances h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.balance-list {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.balance-item:last-child {
+  border-bottom: none;
+}
+
+.balance-item p {
+  margin: 5px 0;
+  font-size: 1em;
+  color: #555;
+}
+
+.balance-item p strong {
+  color: #333;
+}
