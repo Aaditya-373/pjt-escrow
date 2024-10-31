@@ -1,0 +1,66 @@
+  // const handleDeposit = async () => {
+  //   if (!escrowAddress || !amount) {
+  //     alert("Please enter all required fields.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //     const signer = provider.getSigner();
+
+  //     const escrowContract = new ethers.Contract(
+  //       escrowAddress,
+  //       EscrowWallet.abi,
+  //       signer
+  //     );
+
+  //     // Deposit transaction
+  //     const depositTx = await escrowContract.deposit({
+  //       value: ethers.utils.parseEther(amount),
+  //     });
+  //     await depositTx.wait();
+  //     console.log("Deposit transaction successful:", depositTx);
+  //     await loadTokenPrice();
+  //     // Add investment entry
+  //     const investmentEntry = {
+  //       company: `Company ${investments.length + 1}`,
+  //       escrowAddress,
+  //       amountDeposited: amount,
+  //       tokensReceived: (amount / tokenPrice).toFixed(0),
+  //       tokenPrice: tokenPrice,
+  //     };
+
+  //     const updatedInvestments = [...investments, investmentEntry];
+  //     setInvestments(updatedInvestments);
+  //     localStorage.setItem("investments", JSON.stringify(updatedInvestments));
+
+  //     // Send investment details via SMS or any messaging service
+  //     const transactionDetails = `
+  //       Transaction Hash: ${depositTx.hash}
+  //       Senders: ${depositTx.from}
+  //       Receivers: ${depositTx.to}
+  //       Amount: ${amount} ETH
+  //       Gas Used: ${depositTx.gasPrice.toString()}
+  //       ChainID: ${depositTx.chainId}
+  //       Block Number: ${depositTx.blockNumber}
+  //       Nonce: ${depositTx.nonce}
+  //     `;
+
+  //     await fetch("http://localhost:5000/send-transaction-message", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+  //     });
+
+  //     alert("Deposit successful and investment information sent!");
+  //     setAmount("");
+  //     setOtp("");
+  //     setOtpSent(false);
+  //   } catch (error) {
+  //     console.error(
+  //       "Error during deposit or sending investment details:",
+  //       error
+  //     );
+  //     alert(`An error occurred: ${error.message}`);
+  //   }
+  // };

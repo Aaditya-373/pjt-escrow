@@ -1,37 +1,45 @@
 // TokenPrices.js
-import React, { useEffect, useState } from 'react';
-import './TokenPrices.css';
+import React, { useState, useEffect } from "react";
 
 const TokenPrices = () => {
-    const [tokenPrices, setTokenPrices] = useState([]);
+  const [tokenPrices, setTokenPrices] = useState({});
 
-    useEffect(() => {
-        // Replace this with your API or logic to fetch token prices
-        const fetchTokenPrices = async () => {
-            const prices = [
-                { token: 'Token A', price: '0.005 ETH' },
-                { token: 'Token B', price: '0.010 ETH' },
-                { token: 'Token C', price: '0.020 ETH' },
-            ];
-            setTokenPrices(prices);
-        };
+  useEffect(() => {
+    const fetchTokenPrices = () => {
+      const storedPrices = JSON.parse(localStorage.getItem("currentTokenPrices") || "{}");
+      setTokenPrices(storedPrices);
+    };
 
-        fetchTokenPrices();
-    }, []);
+    fetchTokenPrices();
 
-    return (
-        <div className="token-prices-container">
-            <h2 className="token-prices-title">Token Prices</h2>
-            <div className="token-prices-list">
-                {tokenPrices.map((price, index) => (
-                    <div key={index} className="token-price-item">
-                        <span className="token-name">{price.token}</span>
-                        <span className="token-price">{price.price}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+    // Listen for changes in localStorage
+    const onStorageChange = () => fetchTokenPrices();
+    window.addEventListener("storage", onStorageChange);
+
+    return () => window.removeEventListener("storage", onStorageChange);
+  }, []);
+
+  return (
+    <div>
+      <h3>Token Prices</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Token Address</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(tokenPrices).map(([address, price]) => (
+            <tr key={address}>
+              <td>{address}</td>
+              <td>{price} ETH</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
 export default TokenPrices;
