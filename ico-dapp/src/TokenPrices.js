@@ -1,37 +1,48 @@
-// TokenPrices.js
-import React, { useEffect, useState } from 'react';
-import './TokenPrices.css';
+import React, { useState, useEffect } from "react";
+import "./Tp.css"
+const TokenPrices = ({ refresh }) => {
+  const [tokenPrices, setTokenPrices] = useState({});
 
-const TokenPrices = () => {
-    const [tokenPrices, setTokenPrices] = useState([]);
+  useEffect(() => {
+    const fetchTokenPrices = () => {
+      const storedPrices = JSON.parse(localStorage.getItem("currentTokenPrices"));
+      setTokenPrices(storedPrices || {});
+    };
 
-    useEffect(() => {
-        // Replace this with your API or logic to fetch token prices
-        const fetchTokenPrices = async () => {
-            const prices = [
-                { token: 'Token A', price: '0.005 ETH' },
-                { token: 'Token B', price: '0.010 ETH' },
-                { token: 'Token C', price: '0.020 ETH' },
-            ];
-            setTokenPrices(prices);
-        };
+    fetchTokenPrices();
 
+    const onStorageChange = (event) => {
+      if (event.key === "currentTokenPrices") {
         fetchTokenPrices();
-    }, []);
+        window.dispatchEvent(new Event("tokenPriceUpdated")); // Trigger custom event
+      }
+    };
+    window.addEventListener("storage", onStorageChange);
 
-    return (
-        <div className="token-prices-container">
-            <h2 className="token-prices-title">Token Prices</h2>
-            <div className="token-prices-list">
-                {tokenPrices.map((price, index) => (
-                    <div key={index} className="token-price-item">
-                        <span className="token-name">{price.token}</span>
-                        <span className="token-price">{price.price}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+    return () => window.removeEventListener("storage", onStorageChange);
+  }, [refresh]);
+
+  return (
+    <div className="token-prices-container">
+      <h3 className="token-prices-header">Token Prices</h3>
+      <table className="token-prices-table">
+        <thead>
+          <tr>
+            <th>Token Address</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(tokenPrices).map(([address, price]) => (
+            <tr key={address}>
+              <td>{address}</td>
+              <td>{price} ETH</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
 export default TokenPrices;

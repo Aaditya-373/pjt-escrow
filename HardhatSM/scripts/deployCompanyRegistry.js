@@ -8,7 +8,7 @@ async function main() {
     console.log("CompanyRegistry deployed to:", companyRegistry.address);
 
     // Save CompanyRegistry address to a config file
-    fs.writeFileSync("config.js", `module.exports = { companyRegistryAddress: "${companyRegistry.address}" , companyAccountAddress : "0xF202FE93eF4c909f7398078Ea1bD48bE7537aDB6"};`);
+    fs.writeFileSync("config.js", `module.exports = { companyRegistryAddress: "${companyRegistry.address}" , companyAccountAddress : "0x3094bdadb972819B5D8E9e1E7fb5963827BDccdd"};`);
 }
 
 main()
