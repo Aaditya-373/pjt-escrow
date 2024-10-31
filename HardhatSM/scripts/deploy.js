@@ -8,15 +8,16 @@ async function main() {
     companyRegistryAddress
   );
 
-  const DemandBasedToken = await ethers.getContractFactory("DemandBasedToken");
+  // Deploy DemandBasedToken with initial token price
+  const DemandBasedToken = await hre.ethers.getContractFactory("DemandBasedToken");
   const demandBasedToken = await DemandBasedToken.deploy(
     hre.ethers.utils.parseUnits("0.01", "ether")
   );
   await demandBasedToken.deployed();
   console.log("DemandBasedToken deployed to:", demandBasedToken.address);
 
-  const EscrowWallet = await ethers.getContractFactory("EscrowWallet");
-
+  // Deploy the new EscrowWallet without milestones
+  const EscrowWallet = await hre.ethers.getContractFactory("EscrowWallet");
   const escrowWallet = await EscrowWallet.deploy(
     demandBasedToken.address,
     companyAccountAddress
@@ -32,10 +33,7 @@ async function main() {
   await grantMintRoleTx.wait();
   console.log("EscrowWallet granted permission to mint tokens.");
 
-  const setMilestoneTx = await escrowWallet.setMilestone(5);
-  await setMilestoneTx.wait();
-  console.log("Milestones set in EscrowWallet");
-
+  // Register the company with CompanyRegistry
   const companyName = process.argv[2] || "New Company";
   const tx = await companyRegistry.registerCompany(
     companyName,
