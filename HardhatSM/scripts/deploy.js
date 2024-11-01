@@ -1,5 +1,7 @@
 const hre = require("hardhat");
 const { companyRegistryAddress, companyAccountAddress } = require("../config");
+const dotenv = require("dotenv");
+dotenv.config()
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
@@ -34,7 +36,9 @@ async function main() {
   console.log("EscrowWallet granted permission to mint tokens.");
 
   // Register the company with CompanyRegistry
-  const companyName = process.argv[2] || "New Company";
+
+  // $env:COMPANY_NAME = "Accenture Kannan"; npx hardhat run scripts/deploy.js --network localhost
+  const companyName = process.env.COMPANY_NAME|| "New Company";
   const tx = await companyRegistry.registerCompany(
     companyName,
     escrowWallet.address,
@@ -42,6 +46,7 @@ async function main() {
   );
   await tx.wait();
   console.log(`${companyName} registered in CompanyRegistry`);
+
 }
 
 main()
