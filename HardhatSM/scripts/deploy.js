@@ -1,6 +1,7 @@
 const hre = require("hardhat");
 const { companyRegistryAddress, companyAccountAddress } = require("../config");
 const dotenv = require("dotenv");
+const inquirer = require("inquirer");
 dotenv.config()
 
 async function main() {
@@ -38,7 +39,17 @@ async function main() {
   // Register the company with CompanyRegistry
 
   // $env:COMPANY_NAME = "Accenture Kannan"; npx hardhat run scripts/deploy.js --network localhost
-  const companyName = process.env.COMPANY_NAME|| "New Company";
+  // const companyName = process.env.COMPANY_NAME|| "New Company";
+  // const COMPANY_NAME = await inquirer.prompt([
+  //   {
+  //     type: "input",
+  //     name: "companyName",
+  //     message: "Enter the company name:",
+  //   },
+  // ]);
+  
+  const companyName = process.env.COMPANY_NAME || "New Company";
+
   const tx = await companyRegistry.registerCompany(
     companyName,
     escrowWallet.address,

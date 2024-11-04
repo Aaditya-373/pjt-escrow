@@ -219,6 +219,38 @@ const App = () => {
       });
       await depositTx.wait();
 
+      const transactionDetails = `
+         Transaction Hash: ${depositTx.hash}
+         Senders: ${depositTx.from}
+         Receivers: ${depositTx.to}
+         Amount: ${amount} ETH
+         Gas Used: ${depositTx.gasPrice.toString()}
+         ChainID: ${depositTx.chainId}
+         Block Number: ${depositTx.blockNumber}
+         Nonce: ${depositTx.nonce}
+       `;
+
+      // Send transaction details as an SMS
+      try {
+        const smsResponse = await fetch(
+          "http://localhost:5000/send-transaction-message",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ phoneNumber, message: transactionDetails }),
+          }
+        );
+
+        if (!smsResponse.ok) {
+          throw new Error("Failed to send transaction details SMS");
+        }
+        console.log("Transaction details sent via SMS successfully!");
+      } catch (error) {
+        console.error("Error sending transaction details SMS:", error);
+      }
+      
       const investmentEntry = {
         company: selectedCompany.name,
         escrowAddress,
@@ -281,7 +313,6 @@ const App = () => {
 
       <div class="parent">
         <div class="left">
-         
           <div className="container">
             <h2>Current Token Price: {tokenPrice} ETH</h2>
             <div className="investment-form">
@@ -355,8 +386,8 @@ const App = () => {
           </div>
         </div>
         <div class="right">
-          <Balance/>
-          <EscrowBalance/>
+          <Balance />
+          <EscrowBalance />
           <TokenPrices refresh={refreshTokenPrices} />
         </div>
       </div>

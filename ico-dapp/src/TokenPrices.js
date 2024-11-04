@@ -24,7 +24,7 @@ const TokenPrices = ({ refresh }) => {
 
   return (
     <div className="token-prices-container">
-      <h3 className="token-prices-header">Token Prices</h3>
+      <h3 className="token-prices-header">Invested Token Prices</h3>
       <table className="token-prices-table">
         <thead>
           <tr>
