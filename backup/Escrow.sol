@@ -2,12 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "./DemandBasedToken.sol";
-import "./CompanyRegistry.sol";
 
 contract EscrowWallet {
     address public owner;
     DemandBasedToken public token; // Token contract reference
-    CompanyRegistry public companyRegistry; // Reference to CompanyRegistry
     uint public milestoneCount;
     uint public currentMilestone;
     uint public lastTokenPrice;
@@ -16,14 +14,9 @@ contract EscrowWallet {
     event DepositMade(address indexed investor, uint256 amount, uint256 tokensMinted);
     event FundsReleased(uint amount);
 
-    constructor(
-        address _token,
-        address _companyAccount,
-        address _companyRegistry
-    ) {
+    constructor(address _token, address _companyAccount) {
         owner = msg.sender;
         token = DemandBasedToken(_token);
-        companyRegistry = CompanyRegistry(_companyRegistry); // Initialize CompanyRegistry reference
         companyAccount = _companyAccount;
         lastTokenPrice = token.tokenPrice();
     }
@@ -57,10 +50,6 @@ contract EscrowWallet {
         uint256 balance = address(this).balance;
         uint256 companyPayout = (balance * 10) / 100;
         payable(companyAccount).transfer(companyPayout);
-
-        // Increase the company's reputation by 5 in the CompanyRegistry
-        companyRegistry.increaseReputation(companyAccount);
-
         emit FundsReleased(companyPayout);
     }
 

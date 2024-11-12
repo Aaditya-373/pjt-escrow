@@ -1,0 +1,12 @@
+{
+  "companyRegistryAddress": "0x73F59095FB081447612cB6d696FAFD59E9CecbC6",
+  "companyAccountAddress": {
+    "Test1": {
+      "account": "0xdB9EC082166Fe74E3DcA5cade70e578a9aaB3342",
+      "token": "0x16A48d5a1448Cacc834153e06a76eA58A4D53065",
+      "escrows": {
+        "1": "0x8d0044F8896ec286F6B556518c533b2B9538ee54"
+      }
+    }
+  }
+}
