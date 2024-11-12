@@ -8,8 +8,10 @@ import Balance from "./Balance";
 import Modal from "react-modal";
 import TokenPrices from "./TokenPrices";
 import EscrowBalance from "./Escrowbalance";
+import TransactionHistory from "./transacHistory";
+import ReputationDisplay from "./ReputationSystem";
 
-const { companyRegistryAddress } = require("./config");
+const { companyRegistryAddress } = require("./config.json");
 
 const App = () => {
   const [account, setAccount] = useState("");
@@ -49,7 +51,6 @@ const App = () => {
         CompanyRegistry.abi,
         provider
       );
-
       const companyAddresses = await companyRegistry.getRegisteredCompanies();
       const companyData = await Promise.all(
         companyAddresses.map(async (address) => {
@@ -213,12 +214,12 @@ const App = () => {
         EscrowWallet.abi,
         signer
       );
-
       const depositTx = await escrowContract.deposit({
         value: ethers.utils.parseEther(amount),
       });
+      console.log("h3")
       await depositTx.wait();
-
+      console.log("h4")
       const transactionDetails = `
          Transaction Hash: ${depositTx.hash}
          Senders: ${depositTx.from}
@@ -272,9 +273,7 @@ const App = () => {
       }
 
       // Update token price in currentTokenPrices
-      console.log(selectedCompany.tokenAddress);
       let updatedPrice = await loadTokenPrice(selectedCompany.tokenAddress);
-      console.log(updatedPrice);
       currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
       localStorage.setItem(
         "currentTokenPrices",
@@ -428,6 +427,8 @@ const App = () => {
           Close
         </button>
       </Modal>
+      {/* <TransactionHistory/> */}
+      <ReputationDisplay/>
     </div>
   );
 };
