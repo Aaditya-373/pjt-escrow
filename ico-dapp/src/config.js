@@ -1,1 +1,1 @@
-module.exports = { companyRegistryAddress: "0xE0aBefE59367061373B2E30b888EBe0069D6325b" , companyAccountAddress : "0x3094bdadb972819B5D8E9e1E7fb5963827BDccdd"};
+module.exports = { companyRegistryAddress: "0x431c63c6FcCfB683cA36919ACe6554B4b24602A3", companyAccountAddress: "0x834e546CBd963e40C3b6EF70b45C7C753807E355" };

@@ -342,7 +342,7 @@ const App = () => {
                   disabled={loading}
                 >
                   {otpSent ? "OTP Sent" : "Send OTP"}
-                </button>
+                </button> 
               </div>
 
               {otpSent && (
