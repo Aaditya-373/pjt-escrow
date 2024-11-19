@@ -2,29 +2,33 @@
 pragma solidity ^0.8.20;
 
 import "./DemandBasedToken.sol";
+import "./CompanyRegistry.sol";
 
 contract EscrowWallet {
     address public owner;
-    DemandBasedToken public token; // Token contract reference
-    uint public milestoneCount;
-    uint public currentMilestone;
-    uint public lastTokenPrice;
+    DemandBasedToken public token;
+    CompanyRegistry public companyRegistry; // Reference to CompanyRegistry
     address public companyAccount;
+    uint256 public lastTokenPrice;
 
     event DepositMade(address indexed investor, uint256 amount, uint256 tokensMinted);
-    event FundsReleased(uint amount);
+    event FundsReleased(uint256 amount);
 
-    constructor(address _token, address _companyAccount) {
+    constructor(
+        address _token,
+        address _companyAccount,
+        address _companyRegistry
+    ) {
         owner = msg.sender;
         token = DemandBasedToken(_token);
         companyAccount = _companyAccount;
+        companyRegistry = CompanyRegistry(_companyRegistry);
         lastTokenPrice = token.tokenPrice();
     }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
     }
+
 
     function deposit() external payable {
         require(msg.value > 0, "Must deposit some funds");
@@ -32,28 +36,18 @@ contract EscrowWallet {
         uint256 tokensToMint = (msg.value * 1e18) / token.tokenPrice();
         token.mintTokens(msg.sender, tokensToMint);
 
+        uint256 tokenPriceIncrease = token.tokenPrice() > lastTokenPrice
+            ? token.tokenPrice() - lastTokenPrice
+            : 0;
+        lastTokenPrice = token.tokenPrice();
+
+        // Update company reputation in the registry
+        companyRegistry.updateReputation(address(this), msg.value, tokenPriceIncrease);
+
         emit DepositMade(msg.sender, msg.value, tokensToMint);
 
-        // Transfer 10% of deposit amount to the company account
+        // Transfer 10% to the company account
         uint256 companyShare = (msg.value * 10) / 100;
         payable(companyAccount).transfer(companyShare);
-
-        // Check for the token price increase milestone
-        uint256 newTokenPrice = token.tokenPrice();
-        if (newTokenPrice >= lastTokenPrice + 0.0000000000000001 ether) {
-            lastTokenPrice = newTokenPrice;
-            releaseFunds();
-        }
-    }
-
-    function releaseFunds() internal {
-        uint256 balance = address(this).balance;
-        uint256 companyPayout = (balance * 10) / 100;
-        payable(companyAccount).transfer(companyPayout);
-        emit FundsReleased(companyPayout);
-    }
-
-    function getBalance() external view returns (uint256) {
-        return address(this).balance;
     }
 }

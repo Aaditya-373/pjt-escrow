@@ -1,65 +1,55 @@
 const hre = require("hardhat");
-const { companyRegistryAddress, companyAccountAddress } = require("../config");
 const dotenv = require("dotenv");
-const inquirer = require("inquirer");
-dotenv.config()
+const { companyRegistryAddress, companyAccountAddress } = require("../config");
+
+dotenv.config();
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+
+  // Attach to the CompanyRegistry contract
   const companyRegistry = await hre.ethers.getContractAt(
     "CompanyRegistry",
     companyRegistryAddress
   );
 
-  // Deploy DemandBasedToken with initial token price
+  // Deploy DemandBasedToken with the required argument
   const DemandBasedToken = await hre.ethers.getContractFactory("DemandBasedToken");
-  const demandBasedToken = await DemandBasedToken.deploy(
-    hre.ethers.utils.parseUnits("0.01", "ether")
-  );
+  const initialPrice = hre.ethers.utils.parseUnits("0.01", "ether");
+  const demandBasedToken = await DemandBasedToken.deploy(initialPrice);
   await demandBasedToken.deployed();
   console.log("DemandBasedToken deployed to:", demandBasedToken.address);
 
-  // Deploy the new EscrowWallet without milestones
+  // Deploy EscrowWallet with the required arguments
   const EscrowWallet = await hre.ethers.getContractFactory("EscrowWallet");
   const escrowWallet = await EscrowWallet.deploy(
-    demandBasedToken.address,
-    companyAccountAddress
+    demandBasedToken.address,  // Token address
+    companyAccountAddress,     // Company account address
+    companyRegistryAddress     // CompanyRegistry address
   );
   await escrowWallet.deployed();
   console.log("EscrowWallet deployed to:", escrowWallet.address);
 
   // Grant MINTER_ROLE to EscrowWallet
-  const grantMintRoleTx = await demandBasedToken.grantRole(
-    hre.ethers.utils.id("MINTER_ROLE"),
-    escrowWallet.address
-  );
+  const MINTER_ROLE = hre.ethers.utils.id("MINTER_ROLE");
+  const grantMintRoleTx = await demandBasedToken.grantRole(MINTER_ROLE, escrowWallet.address);
   await grantMintRoleTx.wait();
   console.log("EscrowWallet granted permission to mint tokens.");
 
-  // Register the company with CompanyRegistry
-
-  // $env:COMPANY_NAME = "Accenture Kannan"; npx hardhat run scripts/deploy.js --network localhost
-  // const companyName = process.env.COMPANY_NAME|| "New Company";
-  // const COMPANY_NAME = await inquirer.prompt([
-  //   {
-  //     type: "input",
-  //     name: "companyName",
-  //     message: "Enter the company name:",
-  //   },
-  // ]);
-  
+  // Register the company in CompanyRegistry
   const companyName = process.env.COMPANY_NAME || "New Company";
-
-  const tx = await companyRegistry.registerCompany(
-    companyName,
-    escrowWallet.address,
-    demandBasedToken.address
+  const registerTx = await companyRegistry.registerCompany(
+    companyName,               // Company name
+    escrowWallet.address,      // EscrowWallet address
+    demandBasedToken.address   // Token address
   );
-  await tx.wait();
+  await registerTx.wait();
   console.log(`${companyName} registered in CompanyRegistry`);
-
 }
 
+// Execute the script
 main()
   .then(() => process.exit(0))
   .catch((error) => {

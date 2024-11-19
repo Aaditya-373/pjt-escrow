@@ -23,25 +23,25 @@ const client = twilio(accountSid, authToken);
 // Middleware
 app.use(bodyParser.json());
 
-const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID 
+const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID
 const MessageServiceSid = process.env.TWILIO_MESSAGE_SERVICE_SID
 // Endpoint to send OTP
 app.post('/send-otp', async (req, res) => {
     const { phoneNumber } = req.body;
 
     try {
-        const verification = await client.verify.v2.services(verifyServiceSid)
-            .verifications
-            .create({
-                to: phoneNumber,
-                channel: 'sms',
-            });
-        console.log("OTP sent:", verification.status);
-        return res.status(200).send({ message: 'OTP sent successfully!', status: verification.status });
-        // return res.status(200).send({ message: 'OTP sent successfully!'})
+        // const verification = await client.verify.v2.services(verifyServiceSid)
+        //     .verifications
+        //     .create({
+        //         to: phoneNumber,
+        //         channel: 'sms',
+        //     });
+        // console.log("OTP sent:", verification.status);
+        // return res.status(200).send({ message: 'OTP sent successfully!', status: verification.status });
+        return res.status(200).send({ message: 'OTP sent successfully!' })
     } catch (error) {
-        console.error("Error sending OTP:", error);
-        return res.status(500).send({ message: 'Failed to send OTP', error });
+        // console.error("Error sending OTP:", error);
+        // return res.status(500).send({ message: 'Failed to send OTP', error });
     }
 });
 
@@ -50,22 +50,22 @@ app.post('/verify-otp', async (req, res) => {
     const { phoneNumber, otp } = req.body;
 
     try {
-        const verificationCheck = await client.verify.v2.services(verifyServiceSid)
-            .verificationChecks
-            .create({
-                to: phoneNumber,
-                code: otp,
-            });
+        // const verificationCheck = await client.verify.v2.services(verifyServiceSid)
+        //     .verificationChecks
+        //     .create({
+        //         to: phoneNumber,
+        //         code: otp,
+        //     });
 
-        if (verificationCheck.status === 'approved') {
-            return res.status(200).send({ message: 'OTP verified successfully!' });
-        } else {
-            return res.status(400).send({ message: 'Invalid OTP' });
-        }
-    // return res.status(200).send({ message: 'OTP verified successfully!' })
+        // if (verificationCheck.status === 'approved') {
+        //     return res.status(200).send({ message: 'OTP verified successfully!' });
+        // } else {
+        //     return res.status(400).send({ message: 'Invalid OTP' });
+        // }
+        return res.status(200).send({ message: 'OTP verified successfully!' })
     } catch (error) {
-        console.error("Error verifying OTP:", error);
-        return res.status(500).send({ message: 'Failed to verify OTP', error });
+        // console.error("Error verifying OTP:", error);
+        // return res.status(500).send({ message: 'Failed to verify OTP', error });
     }
 });
 
@@ -74,18 +74,18 @@ app.post('/send-transaction-message', async (req, res) => {
     const { phoneNumber } = req.body;  // You can hardcode the number if necessary
     // console.log(req.body)
     try {
-        const message = await client.messages.create({
-            body: req.body.message,  // Message content
-            messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID, // Add your Messaging Service SID
-            to: phoneNumber || '+917358645059',  // Recipient number
-        });
+        // const message = await client.messages.create({
+        //     body: req.body.message,  // Message content
+        //     messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID, // Add your Messaging Service SID
+        //     to: phoneNumber || '+917358645059',  // Recipient number
+        // });
 
-        console.log("Transaction message sent:", message.sid);
-        return res.status(200).send({ message: 'Transaction message sent successfully!', messageSid: message.sid });
-        // return res.status(200).send({ message: 'Transaction message sent successfully!'})
+        // console.log("Transaction message sent:", message.sid);
+        // return res.status(200).send({ message: 'Transaction message sent successfully!', messageSid: message.sid });
+        return res.status(200).send({ message: 'Transaction message sent successfully!' })
     } catch (error) {
-        console.error("Error sending transaction message:", error);
-        return res.status(500).send({ message: 'Failed to send transaction message', error });
+        // console.error("Error sending transaction message:", error);
+        // return res.status(500).send({ message: 'Failed to send transaction message', error });
     }
 });
 

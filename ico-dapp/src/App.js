@@ -8,6 +8,7 @@ import Balance from "./Balance";
 import Modal from "react-modal";
 import TokenPrices from "./TokenPrices";
 import EscrowBalance from "./Escrowbalance";
+import ReputationSystem from "./ReputationSystem";
 
 const { companyRegistryAddress } = require("./config");
 
@@ -25,6 +26,7 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [refreshTokenPrices, setRefreshTokenPrices] = useState(false);
+
 
   const loadProvider = async () => {
     const { ethereum } = window;
@@ -107,7 +109,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-            "Price not available"
+          "Price not available"
         );
       }
     };
@@ -134,7 +136,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-            "Price not available"
+          "Price not available"
         );
       }
     };
@@ -215,7 +217,7 @@ const App = () => {
       );
 
       const depositTx = await escrowContract.deposit({
-        value: ethers.utils.parseEther(amount),
+        value: ethers.utils.parseEther(amount)
       });
       await depositTx.wait();
 
@@ -250,7 +252,7 @@ const App = () => {
       } catch (error) {
         console.error("Error sending transaction details SMS:", error);
       }
-      
+
       const investmentEntry = {
         company: selectedCompany.name,
         escrowAddress,
@@ -299,6 +301,8 @@ const App = () => {
     }
   };
 
+
+
   return (
     <div className="app">
       <header className="header">
@@ -310,7 +314,7 @@ const App = () => {
           View Registered Companies
         </button>
       </header>
-
+      <ReputationSystem />
       <div class="parent">
         <div class="left">
           <div className="container">
@@ -342,7 +346,7 @@ const App = () => {
                   disabled={loading}
                 >
                   {otpSent ? "OTP Sent" : "Send OTP"}
-                </button> 
+                </button>
               </div>
 
               {otpSent && (
@@ -404,9 +408,8 @@ const App = () => {
           {companies.map((company, index) => (
             <div
               key={index}
-              className={`company-card ${
-                selectedCompany === index ? "selected" : ""
-              }`}
+              className={`company-card ${selectedCompany === index ? "selected" : ""
+                }`}
               onClick={() => {
                 setSelectedCompany(company);
                 setEscrowAddress(company.escrowAddress);
@@ -428,6 +431,8 @@ const App = () => {
           Close
         </button>
       </Modal>
+
+
     </div>
   );
 };
