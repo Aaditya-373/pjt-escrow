@@ -41,6 +41,7 @@ contract CompanyRegistry {
         return registeredCompanies;
     }
 
+
     function updateReputation(
         address _escrowAddress,
         uint256 depositAmount,
@@ -54,26 +55,6 @@ contract CompanyRegistry {
         // Calculate reputation score (weight: deposits 70%, token price increase 30%)
         company.reputationScore = (company.totalDeposits / 1 ether) * 70 +
             tokenPriceIncrease * 30;
-
-        emit ReputationUpdated(_escrowAddress, company.reputationScore);
-    }
-
-    // New function to decrease reputation on withdrawal
-    function updateReputationDecrease(
-        address _escrowAddress,
-        uint256 withdrawalAmount
-    ) public {
-        require(companies[_escrowAddress].isRegistered, "Company not registered");
-
-        Company storage company = companies[_escrowAddress];
-
-        // Decrease reputation score based on the withdrawal amount
-        uint256 decreaseAmount = withdrawalAmount * 120;
-        if (company.reputationScore >= decreaseAmount) {
-            company.reputationScore -= decreaseAmount;
-        } else {
-            company.reputationScore = 0;
-        }
 
         emit ReputationUpdated(_escrowAddress, company.reputationScore);
     }

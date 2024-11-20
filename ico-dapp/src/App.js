@@ -304,8 +304,77 @@ const App = () => {
   };
 
   const handleWithdrawal = async (modeOfWithdrawal, escrowAddress, totalAmount) => {
-    console.log(modeOfWithdrawal, escrowAddress , totalAmount);
+    if (!escrowAddress || !modeOfWithdrawal) {
+      alert("Please select a withdrawal mode and provide an escrow address.");
+      return;
+    }
+  
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
+  
+      const bal = escrowContract.getBalance() 
+      const gfee = 0.00379
+      let amt = bal + ((totalAmount - bal - gfee)/10)
+
+      let tx;
+      if (modeOfWithdrawal === "Immediate") {
+        tx = await escrowContract.immediateWithdrawal(account);
+      } else if (modeOfWithdrawal === "Paced") {
+        tx = await escrowContract.pacedWithdrawal(account);
+      } else if (modeOfWithdrawal === "Full") {
+        tx = await escrowContract.fullWithdrawal(account);
+      } else {
+        throw new Error("Invalid withdrawal mode selected.");
+      }
+  
+      await tx.wait();
+      alert(`Withdrawal (${modeOfWithdrawal}) successful! Transaction: ${tx.hash}`);
+  
+      // Update localStorage with new balance and token price
+      const updatedInvestments = investments.map((investment) => {
+        if (investment.escrowAddress === escrowAddress) {
+
+          return {
+            ...investment,
+            amountDeposited: amt > 0 ? amt : 0,
+          };
+        }
+        return investment;
+      });
+  
+      setInvestments(updatedInvestments);
+      localStorage.setItem("investments", JSON.stringify(updatedInvestments));
+  
+      // Update current token prices in localStorage
+      let currentTokenPrices = JSON.parse(localStorage.getItem("currentTokenPrices") || "{}");
+      if (selectedCompany) {
+        const updatedPrice = await loadTokenPrice(selectedCompany.tokenAddress);
+        currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
+        localStorage.setItem("currentTokenPrices", JSON.stringify(currentTokenPrices));
+      }
+  
+      // Re-fetch the updated token price
+      setTokenPrice((prevPrice) => {
+        return currentTokenPrices[selectedCompany.tokenAddress] || prevPrice;
+      });
+      toggleWModal();
+    } catch (error) {
+      // Catch specific errors and provide a user-friendly alert
+      if (error.message.includes("Internal JSON-RPC error")) {
+        alert("You are not allowed to withdraw at this time. Please check your withdrawal conditions.");
+      } else if (error.message.includes("insufficient funds")) {
+        alert("Insufficient funds for this withdrawal.");
+      } else {
+        alert(`An error occurred during withdrawal: ${error.message}`);
+      }
+      console.error("Error during withdrawal:", error);
+    }
   };
+  
+  
+  
   
   return (
     <div className="app">
@@ -318,7 +387,7 @@ const App = () => {
           View Registered Companies
         </button>
       </header>
-      <ReputationSystem />
+      
       <div class="parent">
         <div class="left">
           <div className="container">
@@ -399,10 +468,12 @@ const App = () => {
               </div>
             </div>
           </div>
+          
         </div>
         <div class="right">
           <Balance />
           <EscrowBalance />
+          <ReputationSystem />
           <TokenPrices refresh={refreshTokenPrices} />
         </div>
       </div>
@@ -496,6 +567,7 @@ const App = () => {
                 handleWithdrawal(withdrawalMode, selectedCompany.escrowAddress,selectedCompany.amountDeposited)
               }
               disabled={!withdrawalMode}
+              style={{ marginRight: "5px" }}
             >
               Withdraw
             </button>
