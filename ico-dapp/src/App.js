@@ -26,7 +26,8 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [refreshTokenPrices, setRefreshTokenPrices] = useState(false);
-
+  const [withdrawalMode, setWithdrawalMode] = useState(""); // State to store the selected withdrawal mode
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   const loadProvider = async () => {
     const { ethereum } = window;
@@ -109,7 +110,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-          "Price not available"
+            "Price not available"
         );
       }
     };
@@ -136,7 +137,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-          "Price not available"
+            "Price not available"
         );
       }
     };
@@ -148,6 +149,10 @@ const App = () => {
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
+  };
+
+  const toggleWModal = () => {
+    setIsWithdrawModalOpen(!isWithdrawModalOpen);
   };
 
   const handleSendOtp = async () => {
@@ -217,7 +222,7 @@ const App = () => {
       );
 
       const depositTx = await escrowContract.deposit({
-        value: ethers.utils.parseEther(amount)
+        value: ethers.utils.parseEther(amount),
       });
       await depositTx.wait();
 
@@ -273,10 +278,7 @@ const App = () => {
         currentTokenPrices = {};
       }
 
-      // Update token price in currentTokenPrices
-      console.log(selectedCompany.tokenAddress);
       let updatedPrice = await loadTokenPrice(selectedCompany.tokenAddress);
-      console.log(updatedPrice);
       currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
       localStorage.setItem(
         "currentTokenPrices",
@@ -301,8 +303,10 @@ const App = () => {
     }
   };
 
-
-
+  const handleWithdrawal = async (modeOfWithdrawal, escrowAddress, totalAmount) => {
+    console.log(modeOfWithdrawal, escrowAddress , totalAmount);
+  };
+  
   return (
     <div className="app">
       <header className="header">
@@ -372,7 +376,14 @@ const App = () => {
               <div className="investment-list">
                 {investments.length > 0 ? (
                   investments.map((investment, index) => (
-                    <div className="investment-card" key={index}>
+                    <div
+                      className="investment-card"
+                      key={index}
+                      onClick={() => {
+                        setSelectedCompany(investment);
+                        toggleWModal();
+                      }}
+                    >
                       <h4>{investment.company}</h4>
                       <p>Escrow Wallet Address: {investment.escrowAddress}</p>
                       <p>Amount Deposited: {investment.amountDeposited} ETH</p>
@@ -408,8 +419,9 @@ const App = () => {
           {companies.map((company, index) => (
             <div
               key={index}
-              className={`company-card ${selectedCompany === index ? "selected" : ""
-                }`}
+              className={`company-card ${
+                selectedCompany === index ? "selected" : ""
+              }`}
               onClick={() => {
                 setSelectedCompany(company);
                 setEscrowAddress(company.escrowAddress);
@@ -432,7 +444,68 @@ const App = () => {
         </button>
       </Modal>
 
+      <Modal
+        isOpen={isWithdrawModalOpen}
+        onRequestClose={toggleWModal}
+        className="company-modal"
+        overlayClassName="modal-overlay"
+        ariaHideApp={false}
+      >
+        <h2>Investment Details</h2>
+        {selectedCompany && (
+          <>
+            <p>Company: {selectedCompany.company}</p>
+            <p>Escrow Wallet Address: {selectedCompany.escrowAddress}</p>
+            <p>Amount Deposited: {selectedCompany.amountDeposited} ETH</p>
+            <p>Tokens Received: {selectedCompany.tokensReceived}</p>
+            <p>Bought At Token Price: {selectedCompany.tokenPrice} ETH/token</p>
 
+            <div>
+              <h3>Select Withdrawal Mode</h3>
+              <label>
+                <input
+                  type="radio"
+                  value="Immediate"
+                  checked={withdrawalMode === "Immediate"}
+                  onChange={() => setWithdrawalMode("Immediate")}
+                />
+                Immediate
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="Paced"
+                  checked={withdrawalMode === "Paced"}
+                  onChange={() => setWithdrawalMode("Paced")}
+                />
+                Paced
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="Full"
+                  checked={withdrawalMode === "Full"}
+                  onChange={() => setWithdrawalMode("Full")}
+                />
+                Full
+              </label>
+            </div>
+
+            <button
+              onClick={() =>
+                handleWithdrawal(withdrawalMode, selectedCompany.escrowAddress,selectedCompany.amountDeposited)
+              }
+              disabled={!withdrawalMode}
+            >
+              Withdraw
+            </button>
+          </>
+        )}
+
+        <button className="close-modal-button" onClick={toggleWModal}>
+          Close
+        </button>
+      </Modal>
     </div>
   );
 };

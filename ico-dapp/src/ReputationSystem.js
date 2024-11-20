@@ -16,15 +16,12 @@ const ReputationSystem = () => {
             );
 
             const companies = await companyRegistry.getCompaniesByReputation();
-            console.log("Fetched companies:", companies);
 
             const formattedCompanies = companies.map((company) => ({
                 name: company.name,
                 escrowAddress: company.escrowAddress,
                 reputationScore: ethers.BigNumber.from(company.reputationScore).toString(),
             }));
-
-            console.log("Formatted companies:", formattedCompanies);
             setCompanies(formattedCompanies);
         } catch (error) {
             console.error("Error loading reputation scores:", error);
