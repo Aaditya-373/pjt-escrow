@@ -67,16 +67,21 @@ contract CompanyRegistry {
 
         Company storage company = companies[_escrowAddress];
 
-        // Decrease reputation score based on the withdrawal amount
-        uint256 decreaseAmount = withdrawalAmount * 120;
-        if (company.reputationScore >= decreaseAmount) {
+        // Proportionally decrease reputation score based on withdrawal
+        uint256 totalDeposits = company.totalDeposits;
+        require(totalDeposits > 0, "No deposits to calculate reputation decrease");
+
+        uint256 decreaseAmount = (withdrawalAmount * company.reputationScore) / totalDeposits;
+
+        if (company.reputationScore > decreaseAmount) {
             company.reputationScore -= decreaseAmount;
         } else {
-            company.reputationScore = 0;
+            company.reputationScore = 0; // Prevent underflow
         }
 
         emit ReputationUpdated(_escrowAddress, company.reputationScore);
     }
+
 
     function getCompaniesByReputation() public view returns (Company[] memory) {
         Company[] memory sortedCompanies = new Company[](registeredCompanies.length);

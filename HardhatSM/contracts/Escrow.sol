@@ -57,93 +57,97 @@ contract EscrowWallet {
     }
 
     function immediateWithdrawal(address payable user) external {
-    // Check if cooldown is active for any withdrawal
-    require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
+        require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
 
-    uint256 balance = address(this).balance;
-    require(balance > 0, "Insufficient contract balance");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "Insufficient contract balance");
 
-    uint256 withdrawalAmount = (balance * 10) / 100;
-    require(withdrawalAmount > 0, "Zero withdrawal amount");
+        uint256 withdrawalAmount = (balance * 10) / 100;
+        require(withdrawalAmount > 0, "Zero withdrawal amount");
 
-    // Trigger the immediate withdrawal
-    (bool success, ) = user.call{value: withdrawalAmount}("");
-    require(success, "Immediate withdrawal failed");
+        (bool success, ) = user.call{value: withdrawalAmount}("");
+        require(success, "Immediate withdrawal failed");
 
-    emit FundsReleased(user, withdrawalAmount, "Immediate");
+        emit FundsReleased(user, withdrawalAmount, "Immediate");
 
-    // Update the reputation by decreasing it based on the withdrawn amount
-    companyRegistry.updateReputationDecrease(address(this), withdrawalAmount);
+        // Update reputation
+        companyRegistry.updateReputationDecrease(address(this), withdrawalAmount);
 
-    lastWithdrawalTime[user] = block.timestamp;
-    withdrawalCooldown[user] = block.timestamp + 10 days;
-}
+        // **Update token price**
+        token.updatePriceOnWithdraw(withdrawalAmount);
 
-function pacedWithdrawal(address payable user) external {
-    // Check if cooldown is active for any withdrawal
-    require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
-
-    uint256 balance = address(this).balance;
-    require(balance > 0, "Insufficient contract balance");
-
-    uint256 allowedAmount = (balance * 70) / 100;
-    uint256 elapsed = block.timestamp - lastWithdrawalTime[user];
-    require(elapsed >= 24 hours, "Paced withdrawal not available yet");
-
-    uint256 amountToWithdraw;
-    if (elapsed >= 48 hours) {
-        amountToWithdraw = (allowedAmount * 20) / 70;
-    } else if (elapsed >= 24 hours) {
-        amountToWithdraw = (allowedAmount * 30) / 70;
-    } else {
-        amountToWithdraw = (allowedAmount * 20) / 70;
+        //lastWithdrawalTime[user] = block.timestamp;
+        //withdrawalCooldown[user] = block.timestamp;
     }
 
-    pacedWithdrawalAmounts[user] += amountToWithdraw;
-    require(pacedWithdrawalAmounts[user] <= allowedAmount, "Exceeds paced limit");
 
-    lastWithdrawalTime[user] = block.timestamp;
+    function pacedWithdrawal(address payable user) external {
+        require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
 
-    // Trigger the paced withdrawal
-    (bool success, ) = user.call{value: amountToWithdraw}("");
-    require(success, "Paced withdrawal failed");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "Insufficient contract balance");
 
-    emit FundsReleased(user, amountToWithdraw, "Paced");
+        uint256 allowedAmount = (balance * 70) / 100;
+        uint256 elapsed = block.timestamp - lastWithdrawalTime[user];
+        require(elapsed >= 24 hours, "Paced withdrawal not available yet");
 
-    // Update the reputation by decreasing it based on the withdrawn amount
-    companyRegistry.updateReputationDecrease(address(this), amountToWithdraw);
+        uint256 amountToWithdraw;
+        if (elapsed >= 48 hours) {
+            amountToWithdraw = (allowedAmount * 20) / 70;
+        } else if (elapsed >= 24 hours) {
+            amountToWithdraw = (allowedAmount * 30) / 70;
+        } else {
+            amountToWithdraw = (allowedAmount * 20) / 70;
+        }
 
-    // Set cooldown for other withdrawals (1 day in this case)
-    withdrawalCooldown[user] = block.timestamp + 1 days;
-}
+        pacedWithdrawalAmounts[user] += amountToWithdraw;
+        require(pacedWithdrawalAmounts[user] <= allowedAmount, "Exceeds paced limit");
 
-function fullWithdrawal(address payable user) external {
-    // Check if cooldown is active for any withdrawal
-    require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
+        lastWithdrawalTime[user] = block.timestamp;
 
-    uint256 balance = address(this).balance;
-    require(balance > 0, "Insufficient contract balance");
+        (bool success, ) = user.call{value: amountToWithdraw}("");
+        require(success, "Paced withdrawal failed");
 
-    uint256 allowedAmount = (balance * 10) / 100;
-    uint256 elapsed = block.timestamp - lastWithdrawalTime[user];
-    require(elapsed >= 24 hours, "Daily withdrawal not available yet");
+        emit FundsReleased(user, amountToWithdraw, "Paced");
 
-    fullWithdrawalAmounts[user] += allowedAmount;
-    require(fullWithdrawalAmounts[user] <= balance, "Exceeds full withdrawal limit");
+        // Update reputation
+        companyRegistry.updateReputationDecrease(address(this), amountToWithdraw);
 
-    lastWithdrawalTime[user] = block.timestamp;
+        // **Update token price**
+        token.updatePriceOnWithdraw(amountToWithdraw);
 
-    // Trigger the full withdrawal
-    (bool success, ) = user.call{value: allowedAmount}("");
-    require(success, "Full withdrawal failed");
+        withdrawalCooldown[user] = block.timestamp + 1 days;
+    }
 
-    emit FundsReleased(user, allowedAmount, "Full");
 
-    // Update the reputation by decreasing it based on the withdrawn amount
-    companyRegistry.updateReputationDecrease(address(this), allowedAmount);
+    function fullWithdrawal(address payable user) external {
+        require(block.timestamp >= withdrawalCooldown[user], "Cooldown period not over");
 
-    // Set cooldown for other withdrawals (2 days in this case)
-    withdrawalCooldown[user] = block.timestamp + 2 days;
-}
+        uint256 balance = address(this).balance;
+        require(balance > 0, "Insufficient contract balance");
+
+        uint256 allowedAmount = (balance * 10) / 100;
+        uint256 elapsed = block.timestamp - lastWithdrawalTime[user];
+        require(elapsed >= 24 hours, "Daily withdrawal not available yet");
+
+        fullWithdrawalAmounts[user] += allowedAmount;
+        require(fullWithdrawalAmounts[user] <= balance, "Exceeds full withdrawal limit");
+
+        lastWithdrawalTime[user] = block.timestamp;
+
+        (bool success, ) = user.call{value: allowedAmount}("");
+        require(success, "Full withdrawal failed");
+
+        emit FundsReleased(user, allowedAmount, "Full");
+
+        // Update reputation
+        companyRegistry.updateReputationDecrease(address(this), allowedAmount);
+
+        // **Update token price**
+        token.updatePriceOnWithdraw(allowedAmount);
+
+        withdrawalCooldown[user] = block.timestamp + 2 days;
+    }
+
 
 }

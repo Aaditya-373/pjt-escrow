@@ -37,8 +37,28 @@ contract DemandBasedToken is ERC20, AccessControl {
         emit PriceUpdated(tokenPrice);
     }
 
+    function updatePriceOnWithdraw(uint256 withdrawalAmount) external onlyRole(MINTER_ROLE) {
+        require(withdrawalAmount <= totalDeposited, "Withdrawal exceeds total deposited");
+
+        totalDeposited -= withdrawalAmount;
+
+        // Calculate the decrease based on the withdrawal amount
+        // Use a smaller factor to ensure noticeable changes
+        uint256 decrease = (withdrawalAmount * tokenPrice) / totalDeposited;
+
+        // Safeguard to prevent price dropping below the initial price
+        if (tokenPrice <= decrease + initialPrice) {
+            tokenPrice = initialPrice;
+        } else {
+            tokenPrice -= decrease;
+        }
+
+        emit PriceUpdated(tokenPrice);
+    }
+
+
+
     function getTokenPrice() external view returns (uint256) {
         return tokenPrice;
-}
-
+    }
 }

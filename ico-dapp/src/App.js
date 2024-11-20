@@ -28,6 +28,11 @@ const App = () => {
   const [refreshTokenPrices, setRefreshTokenPrices] = useState(false);
   const [withdrawalMode, setWithdrawalMode] = useState(""); // State to store the selected withdrawal mode
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawalInProgress, setWithdrawalInProgress] = useState({});
+  const [withdrawalStatus, setWithdrawalStatus] = useState({});
+
+
+
 
   const loadProvider = async () => {
     const { ethereum } = window;
@@ -110,7 +115,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-            "Price not available"
+          "Price not available"
         );
       }
     };
@@ -137,7 +142,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-            "Price not available"
+          "Price not available"
         );
       }
     };
@@ -308,57 +313,85 @@ const App = () => {
       alert("Please select a withdrawal mode and provide an escrow address.");
       return;
     }
-  
+
+    // Set the withdrawal status to "in progress" with the start time
+    setWithdrawalStatus(prevStatus => ({
+      ...prevStatus,
+      [escrowAddress]: {
+        status: "Withdrawal in progress...",
+        startTime: Date.now(), // Store the start time in milliseconds
+        type: modeOfWithdrawal, // Store the type of withdrawal
+      }
+    }));
+
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
-  
-      const bal = escrowContract.getBalance() 
-      const gfee = 0.00379
-      let amt = bal + ((totalAmount - bal - gfee)/10)
 
       let tx;
+      // if (modeOfWithdrawal === "Immediate") {
+      //   tx = await escrowContract.immediateWithdrawal(account);
+      // } else if (modeOfWithdrawal === "Paced") {
+      //   tx = await escrowContract.pacedWithdrawal(account);
+      // } else if (modeOfWithdrawal === "Full") {
+      //   tx = await escrowContract.fullWithdrawal(account);
+      // } else {
+      //   throw new Error("Invalid withdrawal mode selected.");
+      // }
       if (modeOfWithdrawal === "Immediate") {
         tx = await escrowContract.immediateWithdrawal(account);
       } else if (modeOfWithdrawal === "Paced") {
-        tx = await escrowContract.pacedWithdrawal(account);
+        let cnt = 3;
+        let interval = 24 * 60 * 30000; // 30 seconds in milliseconds
+        for (let i = 0; i < cnt; i++) {
+          setTimeout(async () => {
+            try {
+              tx = await escrowContract.pacedWithdrawal(account);
+              console.log(`Paced withdrawal #${i + 1} successful`);
+            } catch (error) {
+              if (error.message.includes("Cannot read properties of") || error.message.includes("Internal JSON-RPC error")) {
+                alert("You are not allowed to withdraw at this time. Please check your withdrawal conditions.");
+              } else if (error.message.includes("insufficient funds")) {
+                alert("Insufficient funds for this withdrawal.");
+              } else {
+                console.error(`Error during paced withdrawal #${i + 1}:`, error);
+              }
+
+            }
+          }, interval * i); // Delay each call by interval * i (30s, 60s, 90s)
+        }
       } else if (modeOfWithdrawal === "Full") {
-        tx = await escrowContract.fullWithdrawal(account);
+        let cnt = 3;
+        let interval = 30000 * 24 * 60;
+        for (let i = 0; i < cnt; i++) {
+          setTimeout(async () => {
+            try {
+              tx = await escrowContract.fullWithdrawal(account);
+              console.log(`Full withdrawal #${i + 1} successful`);
+            } catch (error) {
+              console.error(`Error during full withdrawal #${i + 1}:`, error);
+            }
+          }, interval * i); // Delay each call by interval * i (30s, 60s, 90s)
+        }
       } else {
         throw new Error("Invalid withdrawal mode selected.");
       }
-  
-      await tx.wait();
-      alert(`Withdrawal (${modeOfWithdrawal}) successful! Transaction: ${tx.hash}`);
-  
-      // Update localStorage with new balance and token price
-      const updatedInvestments = investments.map((investment) => {
-        if (investment.escrowAddress === escrowAddress) {
 
-          return {
-            ...investment,
-            amountDeposited: amt > 0 ? amt : 0,
-          };
+
+      await tx.wait(); // Wait for the transaction to complete
+      alert(`Withdrawal (${modeOfWithdrawal}) successful! Transaction: ${tx.hash}`);
+
+      // Reset status after the withdrawal is complete
+      setWithdrawalStatus(prevStatus => ({
+        ...prevStatus,
+        [escrowAddress]: {
+          status: "Withdrawal completed",
+          startTime: prevStatus[escrowAddress]?.startTime, // Retain the start time
+          type: modeOfWithdrawal, // Retain withdrawal type
         }
-        return investment;
-      });
-  
-      setInvestments(updatedInvestments);
-      localStorage.setItem("investments", JSON.stringify(updatedInvestments));
-  
-      // Update current token prices in localStorage
-      let currentTokenPrices = JSON.parse(localStorage.getItem("currentTokenPrices") || "{}");
-      if (selectedCompany) {
-        const updatedPrice = await loadTokenPrice(selectedCompany.tokenAddress);
-        currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
-        localStorage.setItem("currentTokenPrices", JSON.stringify(currentTokenPrices));
-      }
-  
-      // Re-fetch the updated token price
-      setTokenPrice((prevPrice) => {
-        return currentTokenPrices[selectedCompany.tokenAddress] || prevPrice;
-      });
+      }));
+
       toggleWModal();
     } catch (error) {
       // Catch specific errors and provide a user-friendly alert
@@ -366,16 +399,58 @@ const App = () => {
         alert("You are not allowed to withdraw at this time. Please check your withdrawal conditions.");
       } else if (error.message.includes("insufficient funds")) {
         alert("Insufficient funds for this withdrawal.");
-      } else {
+      } else if (error.message.includes("Cannot read properties of")) {
+        alert("Please wait.Processing...");
+      }
+      else {
         alert(`An error occurred during withdrawal: ${error.message}`);
       }
       console.error("Error during withdrawal:", error);
+      setWithdrawalStatus(prevStatus => ({
+        ...prevStatus,
+        [escrowAddress]: {
+          status: "Withdrawal failed",
+          startTime: prevStatus[escrowAddress]?.startTime,
+          type: modeOfWithdrawal,
+        }
+      }));
     }
   };
-  
-  
-  
-  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Update the status every second (or other intervals) to check how long it's been
+      setWithdrawalStatus(prevStatus => {
+        const updatedStatus = { ...prevStatus };
+
+        Object.keys(prevStatus).forEach((escrowAddress) => {
+          const status = prevStatus[escrowAddress];
+          const elapsed = Date.now() - status.startTime; // Time passed in milliseconds
+
+          if (status.status === "Withdrawal in progress...") {
+            // Depending on the withdrawal type, adjust the duration
+            if (status.type === "Immediate" && elapsed >= 0) {
+              // Immediate withdrawal takes very little time
+              updatedStatus[escrowAddress].status = "Withdrawal completed";
+            } else if (status.type === "Paced" && elapsed >= 24 * 60 * 60 * 1000) {
+              // Paced withdrawal should complete after 24 hours
+              updatedStatus[escrowAddress].status = "Withdrawal completed";
+            } else if (status.type === "Full" && elapsed >= 48 * 60 * 60 * 1000) {
+              // Full withdrawal should complete after 48 hours
+              updatedStatus[escrowAddress].status = "Withdrawal completed";
+            }
+          }
+        });
+
+        return updatedStatus;
+      });
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval); // Clean up the interval when component is unmounted
+  }, []);
+
+
+
+
   return (
     <div className="app">
       <header className="header">
@@ -387,7 +462,7 @@ const App = () => {
           View Registered Companies
         </button>
       </header>
-      
+
       <div class="parent">
         <div class="left">
           <div className="container">
@@ -460,6 +535,12 @@ const App = () => {
                       <p>
                         Bought At Token Price: {investment.tokenPrice} ETH/token
                       </p>
+                      {withdrawalStatus[investment.escrowAddress] && (
+                        <p style={{ color: "orange" }}>
+                          {withdrawalStatus[investment.escrowAddress].status}
+                        </p>
+                      )}
+
                     </div>
                   ))
                 ) : (
@@ -468,7 +549,7 @@ const App = () => {
               </div>
             </div>
           </div>
-          
+
         </div>
         <div class="right">
           <Balance />
@@ -490,9 +571,8 @@ const App = () => {
           {companies.map((company, index) => (
             <div
               key={index}
-              className={`company-card ${
-                selectedCompany === index ? "selected" : ""
-              }`}
+              className={`company-card ${selectedCompany === index ? "selected" : ""
+                }`}
               onClick={() => {
                 setSelectedCompany(company);
                 setEscrowAddress(company.escrowAddress);
@@ -564,7 +644,7 @@ const App = () => {
 
             <button
               onClick={() =>
-                handleWithdrawal(withdrawalMode, selectedCompany.escrowAddress,selectedCompany.amountDeposited)
+                handleWithdrawal(withdrawalMode, selectedCompany.escrowAddress, selectedCompany.amountDeposited)
               }
               disabled={!withdrawalMode}
               style={{ marginRight: "5px" }}
