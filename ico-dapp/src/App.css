@@ -375,56 +375,21 @@ h1 {
   padding: 25px;
 }
 
-.reputation-scoreboard {
-  margin: 20px;
-  padding: 20px;
-  background-color: #1e1e1e;
-  /* Dark background */
+/* Add scrollbars that match the dark theme */
+ul {
+  scrollbar-width: thin;
+  scrollbar-color: #bb86fc #1e1e1e;
+}
+
+ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+ul::-webkit-scrollbar-thumb {
+  background-color: #bb86fc;
   border-radius: 10px;
-  border: 1px solid #333;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-.scoreboard-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.scoreboard-item {
-  padding: 15px;
-  background-color: #2a2a2a;
-  /* Slightly lighter dark background */
-  border: 1px solid #444;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #e0e0e0;
-  font-weight: 500;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.scoreboard-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.scoreboard-item .score-label {
-  font-weight: bold;
-  color: #bb86fc;
-  /* Highlighted text for labels */
-}
-
-.scoreboard-item .score-value {
-  color: #e0e0e0;
-  /* Lighter color for the score */
-}
-
-.scoreboard-item .score-value.positive {
-  color: #4caf50;
-  /* Green for positive reputation */
-}
-
-.scoreboard-item .score-value.negative {
-  color: #f44336;
-  /* Red for negative reputation */
+ul::-webkit-scrollbar-track {
+  background-color: #1e1e1e;
 }

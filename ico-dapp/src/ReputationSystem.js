@@ -30,36 +30,16 @@ const ReputationSystem = () => {
 
     useEffect(() => {
         loadReputationScores();
-    });
-
+    }, []);
 
     return (
-        <div style={{ backgroundColor: "#1e1e1e", padding: "20px" }}>
-            <h2 style={{ color: "white" }}>Company Reputation Scores</h2>
-            <ul
-                style={{
-                    listStyle: "none",
-                    padding: 0,
-                    maxHeight: "400px",
-                    overflowY: "auto",
-                    borderRadius: "8px",
-                    backgroundColor: "#333",
-                    paddingRight: "10px",
-                }}
-            >
+        <div style={styles.container}>
+            <h2 style={styles.title}>Company Reputation Scores</h2>
+            <ul style={styles.list}>
                 {companies.map((company, index) => (
-                    <li
-                        key={index}
-                        style={{
-                            color: "white",
-                            marginBottom: "10px",
-                            padding: "10px",
-                            backgroundColor: "#444",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <span style={{ fontWeight: "bold" }}>{company.name}:</span>
-                        <span style={{ color: "rgb(9, 205, 9)", marginLeft: "8px" }}>
+                    <li key={index} style={styles.listItem}>
+                        <span style={styles.companyName}>{company.name}</span>
+                        <span style={styles.reputationScore}>
                             {company.reputationScore}
                         </span>
                     </li>
@@ -67,7 +47,51 @@ const ReputationSystem = () => {
             </ul>
         </div>
     );
+};
 
+const styles = {
+    container: {
+        backgroundColor: "#1e1e1e",
+        padding: "20px",
+        borderRadius: "10px",
+        boxShadow: "0 4px 10px rgba(0, 0, 0, 0.5)",
+        maxWidth: "600px",
+        margin: "20px auto",
+    },
+    title: {
+        color: "#bb86fc",
+        fontSize: "24px",
+        marginBottom: "20px",
+        textAlign: "center",
+    },
+    list: {
+        listStyle: "none",
+        padding: 0,
+        margin: 0,
+        maxHeight: "400px",
+        overflowY: "auto",
+        borderRadius: "8px",
+    },
+    listItem: {
+        color: "#e0e0e0",
+        marginBottom: "10px",
+        padding: "15px",
+        backgroundColor: "#2a2a2a",
+        borderRadius: "8px",
+        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.4)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    companyName: {
+        fontWeight: "600",
+        fontSize: "16px",
+        color: "#ffffff",
+    },
+    reputationScore: {
+        color: "rgb(9, 205, 9)",
+        fontWeight: "bold",
+    },
 };
 
 export default ReputationSystem;
