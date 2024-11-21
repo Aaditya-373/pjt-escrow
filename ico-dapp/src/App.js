@@ -30,6 +30,7 @@ const App = () => {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [withdrawalInProgress, setWithdrawalInProgress] = useState({});
   const [withdrawalStatus, setWithdrawalStatus] = useState({});
+  const [lastImmediateWithdrawal, setLastImmediateWithdrawal] = useState({});
 
   const loadProvider = async () => {
     const { ethereum } = window;
@@ -43,6 +44,9 @@ const App = () => {
     if (savedInvestments) {
       setInvestments(JSON.parse(savedInvestments));
     }
+    const savedLastWithdrawals = JSON.parse(localStorage.getItem("lastImmediateWithdrawal")) || {};
+
+    setLastImmediateWithdrawal(savedLastWithdrawals);
     loadRegisteredCompanies();
   }, []);
 
@@ -155,6 +159,12 @@ const App = () => {
 
   const toggleWModal = () => {
     setIsWithdrawModalOpen(!isWithdrawModalOpen);
+  };
+
+  const isOneMonthElapsed = (lastDate) => {
+    const currentDate = new Date();
+    const lastWithdrawalDate = new Date(lastDate);
+    return currentDate - lastWithdrawalDate >= 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
   };
 
   const handleSendOtp = async () => {
@@ -316,7 +326,10 @@ const App = () => {
       alert("Please select a withdrawal mode and provide an escrow address.");
       return;
     }
-
+    if (modeOfWithdrawal=="Immediate" && lastImmediateWithdrawal[escrowAddress] && !isOneMonthElapsed(lastImmediateWithdrawal[escrowAddress])) {
+      alert("You can only make an 'Immediate' withdrawal once per month.");
+      return;
+    }
     // Set the withdrawal status to "in progress" with the start time
     setWithdrawalStatus((prevStatus) => ({
       ...prevStatus,
@@ -348,6 +361,12 @@ const App = () => {
       // }
       if (modeOfWithdrawal === "Immediate") {
         tx = await escrowContract.immediateWithdrawal(account);
+        const updatedLastWithdrawals = {
+          ...lastImmediateWithdrawal,
+          [escrowAddress]: new Date().toISOString(),
+        };
+        setLastImmediateWithdrawal(updatedLastWithdrawals);
+        localStorage.setItem("lastImmediateWithdrawal", JSON.stringify(updatedLastWithdrawals));
       } else if (modeOfWithdrawal === "Paced") {
         let cnt = 3;
         let interval = 24 * 60 * 30000; // 30 seconds in milliseconds
@@ -652,6 +671,10 @@ const App = () => {
                   value="Immediate"
                   checked={withdrawalMode === "Immediate"}
                   onChange={() => setWithdrawalMode("Immediate")}
+                  disabled={
+              lastImmediateWithdrawal[selectedCompany.escrowAddress] &&
+              !isOneMonthElapsed(lastImmediateWithdrawal[selectedCompany.escrowAddress])
+            }
                 />
                 Immediate
               </label>
