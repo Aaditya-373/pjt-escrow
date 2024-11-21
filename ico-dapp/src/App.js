@@ -567,9 +567,6 @@ const App = () => {
                       <p>Amount Deposited: {investment.amountDeposited} ETH</p>
                       <p>Tokens Received: {investment.tokensReceived}</p>
                       <p>
-                        Bought At Token Price: {investment.tokenAddress} ETH/token
-                      </p>
-                      <p>
                         Bought At Token Price: {investment.tokenPrice} ETH/token
                       </p>
                       {withdrawalStatus[investment.escrowAddress] && (
