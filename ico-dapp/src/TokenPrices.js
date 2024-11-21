@@ -14,7 +14,7 @@ const TokenPrices = ({ refresh }) => {
     const onStorageChange = (event) => {
       if (event.key === "currentTokenPrices") {
         fetchTokenPrices();
-        window.dispatchEvent(new Event("tokenPriceUpdated")); // Trigger custom event
+        window.dispatchEvent(new Event("tokenPriceUpdated"));
       }
     };
     window.addEventListener("storage", onStorageChange);
