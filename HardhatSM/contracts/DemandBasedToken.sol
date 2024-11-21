@@ -42,9 +42,7 @@ contract DemandBasedToken is ERC20, AccessControl {
 
         totalDeposited -= withdrawalAmount;
 
-        // Calculate the decrease based on the withdrawal amount
-        // Use a smaller factor to ensure noticeable changes
-        uint256 decrease = (withdrawalAmount * tokenPrice) / totalDeposited;
+        uint256 decrease = withdrawalAmount * 100 ether;
 
         // Safeguard to prevent price dropping below the initial price
         if (tokenPrice <= decrease + initialPrice) {

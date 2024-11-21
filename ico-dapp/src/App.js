@@ -31,9 +31,6 @@ const App = () => {
   const [withdrawalInProgress, setWithdrawalInProgress] = useState({});
   const [withdrawalStatus, setWithdrawalStatus] = useState({});
 
-
-
-
   const loadProvider = async () => {
     const { ethereum } = window;
     if (!ethereum) return;
@@ -115,7 +112,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-          "Price not available"
+            "Price not available"
         );
       }
     };
@@ -142,7 +139,7 @@ const App = () => {
       if (currentTokenPrices && selectedCompany) {
         setTokenPrice(
           currentTokenPrices[selectedCompany.tokenAddress] ||
-          "Price not available"
+            "Price not available"
         );
       }
     };
@@ -267,6 +264,7 @@ const App = () => {
         company: selectedCompany.name,
         escrowAddress,
         amountDeposited: amount,
+        tokenAddress: selectedCompany.tokenAddress,
         tokensReceived: (amount / selectedTokenPrice).toFixed(0),
         tokenPrice: selectedTokenPrice,
       };
@@ -275,7 +273,7 @@ const App = () => {
       setInvestments(updatedInvestments);
       localStorage.setItem("investments", JSON.stringify(updatedInvestments));
 
-      // Ensure currentTokenPrices is initialized as an object in localStorage
+     
       let currentTokenPrices = JSON.parse(
         localStorage.getItem("currentTokenPrices") || "{}"
       );
@@ -308,26 +306,35 @@ const App = () => {
     }
   };
 
-  const handleWithdrawal = async (modeOfWithdrawal, escrowAddress, totalAmount) => {
+  const handleWithdrawal = async (
+    modeOfWithdrawal,
+    escrowAddress,
+    totalAmount,
+    tokenAddress,
+  ) => {
     if (!escrowAddress || !modeOfWithdrawal) {
       alert("Please select a withdrawal mode and provide an escrow address.");
       return;
     }
 
     // Set the withdrawal status to "in progress" with the start time
-    setWithdrawalStatus(prevStatus => ({
+    setWithdrawalStatus((prevStatus) => ({
       ...prevStatus,
       [escrowAddress]: {
         status: "Withdrawal in progress...",
         startTime: Date.now(), // Store the start time in milliseconds
         type: modeOfWithdrawal, // Store the type of withdrawal
-      }
+      },
     }));
 
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const escrowContract = new ethers.Contract(escrowAddress, EscrowWallet.abi, signer);
+      const escrowContract = new ethers.Contract(
+        escrowAddress,
+        EscrowWallet.abi,
+        signer
+      );
 
       let tx;
       // if (modeOfWithdrawal === "Immediate") {
@@ -350,14 +357,21 @@ const App = () => {
               tx = await escrowContract.pacedWithdrawal(account);
               console.log(`Paced withdrawal #${i + 1} successful`);
             } catch (error) {
-              if (error.message.includes("Cannot read properties of") || error.message.includes("Internal JSON-RPC error")) {
-                alert("You are not allowed to withdraw at this time. Please check your withdrawal conditions.");
+              if (
+                error.message.includes("Cannot read properties of") ||
+                error.message.includes("Internal JSON-RPC error")
+              ) {
+                alert(
+                  "You are not allowed to withdraw at this time. Please check your withdrawal conditions."
+                );
               } else if (error.message.includes("insufficient funds")) {
                 alert("Insufficient funds for this withdrawal.");
               } else {
-                console.error(`Error during paced withdrawal #${i + 1}:`, error);
+                console.error(
+                  `Error during paced withdrawal #${i + 1}:`,
+                  error
+                );
               }
-
             }
           }, interval * i); // Delay each call by interval * i (30s, 60s, 90s)
         }
@@ -378,48 +392,68 @@ const App = () => {
         throw new Error("Invalid withdrawal mode selected.");
       }
 
-
       await tx.wait(); // Wait for the transaction to complete
-      alert(`Withdrawal (${modeOfWithdrawal}) successful! Transaction: ${tx.hash}`);
+
+    
+      alert(
+        `Withdrawal (${modeOfWithdrawal}) successful! Transaction: ${tx.hash}`
+      );
 
       // Reset status after the withdrawal is complete
-      setWithdrawalStatus(prevStatus => ({
+      let currentTokenPrices = JSON.parse(
+        localStorage.getItem("currentTokenPrices") || "{}"
+      );
+
+      if (typeof currentTokenPrices !== "object") {
+        currentTokenPrices = {};
+      }
+      console.log(selectedCompany);
+      let updatedPrice = await loadTokenPrice(tokenAddress);
+      currentTokenPrices[selectedCompany.tokenAddress] = updatedPrice;
+      localStorage.setItem(
+        "currentTokenPrices",
+        JSON.stringify(currentTokenPrices)
+      );
+
+
+      setWithdrawalStatus((prevStatus) => ({
         ...prevStatus,
         [escrowAddress]: {
           status: "Withdrawal completed",
           startTime: prevStatus[escrowAddress]?.startTime, // Retain the start time
           type: modeOfWithdrawal, // Retain withdrawal type
-        }
+        },
       }));
 
       toggleWModal();
     } catch (error) {
       // Catch specific errors and provide a user-friendly alert
       if (error.message.includes("Internal JSON-RPC error")) {
-        alert("You are not allowed to withdraw at this time. Please check your withdrawal conditions.");
+        alert(
+          "You are not allowed to withdraw at this time. Please check your withdrawal conditions."
+        );
       } else if (error.message.includes("insufficient funds")) {
         alert("Insufficient funds for this withdrawal.");
       } else if (error.message.includes("Cannot read properties of")) {
         alert("Please wait.Processing...");
-      }
-      else {
+      } else {
         alert(`An error occurred during withdrawal: ${error.message}`);
       }
       console.error("Error during withdrawal:", error);
-      setWithdrawalStatus(prevStatus => ({
+      setWithdrawalStatus((prevStatus) => ({
         ...prevStatus,
         [escrowAddress]: {
-          status: "Withdrawal failed",
+          status: "Transaction on Cooldown",
           startTime: prevStatus[escrowAddress]?.startTime,
           type: modeOfWithdrawal,
-        }
+        },
       }));
     }
   };
   useEffect(() => {
     const interval = setInterval(() => {
       // Update the status every second (or other intervals) to check how long it's been
-      setWithdrawalStatus(prevStatus => {
+      setWithdrawalStatus((prevStatus) => {
         const updatedStatus = { ...prevStatus };
 
         Object.keys(prevStatus).forEach((escrowAddress) => {
@@ -429,13 +463,16 @@ const App = () => {
           if (status.status === "Withdrawal in progress...") {
             // Depending on the withdrawal type, adjust the duration
             if (status.type === "Immediate" && elapsed >= 0) {
-              // Immediate withdrawal takes very little time
               updatedStatus[escrowAddress].status = "Withdrawal completed";
-            } else if (status.type === "Paced" && elapsed >= 24 * 60 * 60 * 1000) {
-              // Paced withdrawal should complete after 24 hours
+            } else if (
+              status.type === "Paced" &&
+              elapsed >= 24 * 60 * 60 * 1000
+            ) {
               updatedStatus[escrowAddress].status = "Withdrawal completed";
-            } else if (status.type === "Full" && elapsed >= 48 * 60 * 60 * 1000) {
-              // Full withdrawal should complete after 48 hours
+            } else if (
+              status.type === "Full" &&
+              elapsed >= 48 * 60 * 60 * 1000
+            ) {
               updatedStatus[escrowAddress].status = "Withdrawal completed";
             }
           }
@@ -447,9 +484,6 @@ const App = () => {
 
     return () => clearInterval(interval); // Clean up the interval when component is unmounted
   }, []);
-
-
-
 
   return (
     <div className="app">
@@ -540,7 +574,6 @@ const App = () => {
                           {withdrawalStatus[investment.escrowAddress].status}
                         </p>
                       )}
-
                     </div>
                   ))
                 ) : (
@@ -549,7 +582,6 @@ const App = () => {
               </div>
             </div>
           </div>
-
         </div>
         <div class="right">
           <Balance />
@@ -571,8 +603,9 @@ const App = () => {
           {companies.map((company, index) => (
             <div
               key={index}
-              className={`company-card ${selectedCompany === index ? "selected" : ""
-                }`}
+              className={`company-card ${
+                selectedCompany === index ? "selected" : ""
+              }`}
               onClick={() => {
                 setSelectedCompany(company);
                 setEscrowAddress(company.escrowAddress);
@@ -644,7 +677,12 @@ const App = () => {
 
             <button
               onClick={() =>
-                handleWithdrawal(withdrawalMode, selectedCompany.escrowAddress, selectedCompany.amountDeposited)
+                handleWithdrawal(
+                  withdrawalMode,
+                  selectedCompany.escrowAddress,
+                  selectedCompany.amountDeposited,
+                  selectedCompany.tokenAddress
+                )
               }
               disabled={!withdrawalMode}
               style={{ marginRight: "5px" }}
